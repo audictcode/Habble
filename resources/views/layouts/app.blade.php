@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}" data-turbolinks-track="true">
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('css/theme-refresh.css') }}" data-turbolinks-track="true">
 
     <script src="https://polyfill.io/v3/polyfill.min.js"></script>
     <script src="{{ asset('js/swiper-bundle.min.js') }}"></script>
