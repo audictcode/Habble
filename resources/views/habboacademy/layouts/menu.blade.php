@@ -27,17 +27,17 @@
                 $fixedPathsByLabel = [
                     'inicio' => '/home',
                     'home' => '/home',
-                    'habboacademy' => '/habble',
-                    'habbo academy' => '/habble',
-                    'habble' => '/habble',
-                    'placas' => '/habbo',
-                    'habbo' => '/habbo',
-                    'contenidos' => '/contents',
-                    'conteudos' => '/contents',
-                    'contents' => '/contents',
-                    'fan center' => '/fancenter',
-                    'fancenter' => '/fancenter',
-                    'radio' => '/radio',
+                    'habboacademy' => '/pages/noticias',
+                    'habbo academy' => '/pages/noticias',
+                    'habble' => '/pages/noticias',
+                    'placas' => '/pages/placas',
+                    'habbo' => '/pages/placas',
+                    'contenidos' => '/pages/noticias',
+                    'conteudos' => '/pages/noticias',
+                    'contents' => '/pages/noticias',
+                    'fan center' => '/pages/generador-de-avatar',
+                    'fancenter' => '/pages/generador-de-avatar',
+                    'radio' => '/pages/radio',
                 ];
 
                 $normalizeSlugToPath = static function (?string $rawSlug): string {

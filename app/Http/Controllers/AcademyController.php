@@ -187,6 +187,22 @@ class AcademyController extends Controller
     {
         $normalizedSlug = Str::slug($slug);
 
+        if (in_array($normalizedSlug, ['inicio', 'home', 'habble', 'habboacademy', 'habbo-academy'], true)) {
+            return redirect()->route('web.academy.index');
+        }
+
+        if (in_array($normalizedSlug, ['habbo', 'placas-habbo', 'nuevas-placas'], true)) {
+            return redirect()->route('web.pages.show', ['slug' => 'placas']);
+        }
+
+        if (in_array($normalizedSlug, ['fancenter', 'fan-center'], true)) {
+            return redirect()->route('web.pages.show', ['slug' => 'generador-de-avatar']);
+        }
+
+        if (in_array($normalizedSlug, ['coleccionables', 'collectibles'], true)) {
+            return redirect()->away('https://collectibles.habbo.com/');
+        }
+
         if (in_array($normalizedSlug, ['generador-de-avatar', 'generador-avatar', 'extras'], true)) {
             $title = 'Generador de Avatar';
 
