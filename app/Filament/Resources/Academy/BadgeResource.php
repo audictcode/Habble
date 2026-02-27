@@ -11,13 +11,10 @@ use Filament\Resources\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Grid;
 use Illuminate\Database\Eloquent\Builder;
-use App\Filament\Traits\ShowLatestResources;
 use App\Filament\Resources\Academy\BadgeResource\Pages;
 
 class BadgeResource extends Resource
 {
-    use ShowLatestResources;
-
     protected static ?string $model = Badge::class;
 
     protected static ?string $slug = 'academy/badges';
@@ -29,6 +26,16 @@ class BadgeResource extends Resource
     protected static ?string $navigationLabel = 'Gestionar Emblemas';
 
     protected static ?string $navigationIcon = 'heroicon-o-view-grid';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->orderByRaw("CASE WHEN habboassets_badge_id IS NULL THEN 1 ELSE 0 END ASC")
+            ->orderByDesc('habboassets_badge_id')
+            ->orderByRaw("CASE WHEN coalesce(habboassets_source_created_at, habbo_published_at) IS NULL THEN 1 ELSE 0 END ASC")
+            ->orderByRaw("coalesce(habboassets_source_created_at, habbo_published_at) DESC")
+            ->orderByDesc('id');
+    }
 
     public static function form(Form $form): Form
     {
@@ -96,14 +103,6 @@ class BadgeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(function (Builder $query): Builder {
-                return $query
-                    ->orderByRaw("CASE WHEN habboassets_badge_id IS NULL THEN 1 ELSE 0 END ASC")
-                    ->orderByDesc('habboassets_badge_id')
-                    ->orderByRaw("CASE WHEN coalesce(habboassets_source_created_at, habbo_published_at) IS NULL THEN 1 ELSE 0 END ASC")
-                    ->orderByRaw("coalesce(habboassets_source_created_at, habbo_published_at) DESC")
-                    ->orderByDesc('id');
-            })
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
