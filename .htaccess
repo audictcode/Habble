@@ -5,9 +5,10 @@ RewriteEngine On
 RewriteRule ^index\.php$ - [L]
 RewriteRule ^$ index.php [L]
 
-# Redirect explicit /public requests to clean URLs
+# Redirect explicit /public requests
 RewriteCond %{THE_REQUEST} \s/+public(?:/|\s|\?) [NC]
-RewriteRule ^public(?:/(.*))?$ /$1 [R=301,L]
+RewriteRule ^public/?$ /index.php [R=301,L]
+RewriteRule ^public/(.*)$ /$1 [R=301,L]
 
 # Internally serve everything else from /public
 RewriteRule ^(.+)$ public/$1 [L]
