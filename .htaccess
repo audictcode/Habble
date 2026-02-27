@@ -1,4 +1,14 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteRule ^(.*)$ public/$1 [L]
+
+# Keep root front controller at /index.php.
+RewriteRule ^index\.php$ - [L]
+RewriteRule ^$ index.php [L]
+
+# If someone requests /public explicitly, redirect to clean URL.
+RewriteCond %{THE_REQUEST} \s/+public(?:/|\s|\?) [NC]
+RewriteRule ^public(?:/(.*))?$ /$1 [R=301,L]
+
+# Internally serve everything else from /public.
+RewriteRule ^(.+)$ public/$1 [L]
 </IfModule>
