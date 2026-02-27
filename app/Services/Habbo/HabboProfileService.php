@@ -2,6 +2,8 @@
 
 namespace App\Services\Habbo;
 
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 class HabboProfileService
@@ -21,9 +23,7 @@ class HabboProfileService
         $baseUrl = sprintf('https://www.habbo.%s', $hotel);
 
         try {
-            $response = Http::timeout(10)
-                ->acceptJson()
-                ->get($baseUrl . '/api/public/users', ['name' => $habboName]);
+            $response = $this->request($baseUrl . '/api/public/users', ['name' => $habboName]);
 
             if (!$response->ok()) {
                 return [
@@ -44,9 +44,7 @@ class HabboProfileService
             $motto = isset($data['motto']) ? (string) $data['motto'] : '';
 
             if ($motto === '') {
-                $profileResponse = Http::timeout(10)
-                    ->acceptJson()
-                    ->get($baseUrl . '/api/public/users/' . $data['uniqueId'] . '/profile');
+                $profileResponse = $this->request($baseUrl . '/api/public/users/' . $data['uniqueId'] . '/profile');
 
                 if ($profileResponse->ok()) {
                     $profileData = $profileResponse->json();
@@ -64,10 +62,48 @@ class HabboProfileService
                 'profile_url' => $baseUrl . '/profile/' . rawurlencode($habboName),
             ];
         } catch (\Throwable $exception) {
+            report($exception);
+
             return [
                 'ok' => false,
                 'message' => 'No se pudo conectar con Habbo para validar la misión.',
             ];
         }
+    }
+
+    private function request(string $url, array $query = []): Response
+    {
+        $timeout = max(1, (int) config('habbo.http_timeout', 10));
+        $verifySsl = (bool) config('habbo.verify_ssl', true);
+
+        try {
+            return $this->buildRequest($timeout, $verifySsl)->get($url, $query);
+        } catch (\Throwable $exception) {
+            if ($verifySsl && $this->isSslCertificateIssue($exception)) {
+                return $this->buildRequest($timeout, false)->get($url, $query);
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function buildRequest(int $timeout, bool $verifySsl): PendingRequest
+    {
+        $request = Http::timeout($timeout)
+            ->acceptJson();
+
+        if (!$verifySsl) {
+            $request = $request->withoutVerifying();
+        }
+
+        return $request;
+    }
+
+    private function isSslCertificateIssue(\Throwable $exception): bool
+    {
+        $message = $exception->getMessage();
+
+        return stripos($message, 'cURL error 60') !== false
+            || stripos($message, 'SSL certificate problem') !== false;
     }
 }

@@ -123,3 +123,5 @@ CREATE INDEX "user_badges_badge_id_index" on "user_badges" ("badge_id");
 CREATE UNIQUE INDEX "users_username_unique" on "users" ("username");
 CREATE UNIQUE INDEX "users_habbo_name_hotel_unique" on "users" ("habbo_name", "habbo_hotel");
 SET FOREIGN_KEY_CHECKS=1;
+
+INSERT INTO users VALUES(2,'Eiver','$2y$10$emel9BydqLFU0tunWxjlAuhCcWX61Ibx.KlHCmoOfg1P/yXYMlGku','eiverdyuk@hotmail.com',NULL,NULL,'2026-02-27 14:23:01','2026-02-27 14:23:01','profiles/default.png',NULL,0,0,'::1','::1','2026-02-27 14:23:01',NULL,'Eiver','es','HLE-JPPV-2',NULL);
