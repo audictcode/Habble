@@ -1,0 +1,18 @@
+@keyframes umbrellaRotation {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes cloudsAnimation {
+    from {
+        transform: translate(-100%, -30%);
+    }
+    to {
+        transform: translate(100%, -60%);
+    }
+}
+

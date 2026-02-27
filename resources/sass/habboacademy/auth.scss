@@ -1,0 +1,220 @@
+.register-container {
+  position: relative;
+  overflow: hidden;
+  padding: 36px 0 48px;
+  min-height: 520px;
+  background: linear-gradient(180deg, #4f93cf 0%, #2f6fab 100%);
+  background-position: right center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.register-container {
+  min-height: 100vh;
+  background-image: linear-gradient(180deg, rgba(79, 147, 207, 0.78) 0%, rgba(47, 111, 171, 0.82) 100%), url("/images/background.webp");
+  background-attachment: fixed;
+  background-position: right center;
+  background-size: auto 120%;
+}
+
+.register-container::before,
+.register-container::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 280px;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.register-container::before {
+  left: 0;
+  background-image: url("/images/register-images/palooza14_background_left.png");
+}
+
+.register-container::after {
+  right: 0;
+  background-image: url("/images/register-images/palooza14_background_right.png");
+}
+
+.register-container .container {
+  position: relative;
+  z-index: 2;
+  max-width: 760px;
+}
+
+.register-container form {
+  margin-top: 18px;
+}
+
+.default-box.full {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.default-box.full i.user,
+.default-box.full i.letter,
+.default-box.full i.password {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8f98a6;
+  font-style: normal;
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  z-index: 2;
+}
+
+.default-box.full i.user::before {
+  content: "\f007";
+}
+
+.default-box.full i.letter::before {
+  content: "\f0e0";
+}
+
+.default-box.full i.password::before {
+  content: "\f023";
+}
+
+.register-container input.form-control,
+.register-container select.form-control {
+  height: 48px;
+  border-radius: 8px;
+  border: 1px solid #c9d4e0;
+  padding-left: 42px;
+  font-weight: 600;
+}
+
+.register-container .join,
+.register-container .login {
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  background: linear-gradient(180deg, #36c56f 0%, #249a53 100%);
+}
+
+.register-container .login {
+  background: linear-gradient(180deg, #4d86f4 0%, #3067d6 100%);
+}
+
+.separator-arrow {
+  color: rgba(255, 255, 255, 0.9);
+  justify-content: center;
+}
+
+@media (max-width: 992px) {
+  .register-container::before,
+  .register-container::after {
+    width: 180px;
+    opacity: 0.35;
+  }
+
+  .register-container::before {
+    opacity: 0.2;
+  }
+
+  .register-container::after {
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 768px) {
+  .register-container {
+    padding-top: 22px;
+    min-height: auto;
+  }
+
+  .register-container::before,
+  .register-container::after {
+    display: none;
+  }
+
+  .register-container {
+    min-height: calc(100vh - 65px);
+    background-attachment: scroll;
+    background-position: right center;
+    background-size: auto 130%;
+  }
+}
+
+.verification-page .verification-box {
+  background: rgba(9, 22, 43, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+.verification-page code {
+  color: #ffe680;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px 7px;
+  border-radius: 5px;
+}
+
+.verification-page .verification-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
+}
+
+.verification-page .verification-actions > * {
+    display: flex;
+    align-items: stretch;
+    margin: 0;
+}
+
+.verification-page .verify-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 42px;
+    padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  color: #fff !important;
+  text-decoration: none !important;
+  font-weight: 700;
+  font-size: 12px;
+  box-shadow: 0 0 4px 2px rgba(0, 0, 0, .25), inset 0 -18px 0 rgba(0, 0, 0, .07);
+    transition: all .2s;
+}
+
+.verification-page .verification-actions form {
+    display: flex;
+    width: 100%;
+    margin: 0;
+}
+
+.verification-page .profile-btn {
+  background-color: $darkblue;
+}
+
+.verification-page .profile-btn:hover {
+  background-color: $indigo;
+}
+
+.verification-page .verify-now-btn {
+  background-color: $green;
+}
+
+.verification-page .verify-now-btn:hover {
+    background-color: $success;
+}
+
+@media (max-width: 768px) {
+    .verification-page .verification-actions {
+        grid-template-columns: 1fr;
+    }
+}
