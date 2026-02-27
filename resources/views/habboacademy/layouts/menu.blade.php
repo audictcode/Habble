@@ -98,15 +98,6 @@
                 @endif
             </li>
             @endforeach
-            <li class="item-menu">
-                <a href="{{ url('/pages/coleccionables') }}" class="title-menu">
-                    <span class="menu-text">
-                        <img class="menu-inline-icon" src="https://collectibles.habbo.com/collectibles.png" alt="Coleccionables icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                        <i class="fa-solid fa-gem menu-inline-fallback"></i>
-                        <span class="menu-label">Coleccionables</span>
-                    </span>
-                </a>
-            </li>
             <li class="user-club">
                 @guest
                     <div class="guest-auth-actions">
