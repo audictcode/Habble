@@ -32,12 +32,11 @@ class FurniCategoryResource extends Resource
                         ->label('Nome')
                         ->required(),
 
-                    Forms\Components\FileUpload::make('icon')
+                    Forms\Components\TextInput::make('icon')
                         ->label('Ícone da Categoria')
-                        ->directory('topics_categories')
-                        ->hint('<strong>Predeterminado:</strong> Sem ícone')
-                        ->helperText('PS: Espere carregar a imagem para salvar a categoria.')
-                        ->image(),
+                        ->hint('<strong>Predeterminado:</strong> fa-couch')
+                        ->helperText('Puedes usar una clase de ícono (ej: fa-gem) o una ruta/URL de imagen.')
+                        ->placeholder('fa-gem'),
                 ])
             ]);
     }
@@ -50,9 +49,9 @@ class FurniCategoryResource extends Resource
                     ->searchable()
                     ->label('Nome'),
 
-                Tables\Columns\ImageColumn::make('icon')
+                Tables\Columns\TextColumn::make('icon')
                     ->label('Ícone')
-                    ->size(20),
+                    ->formatStateUsing(fn (?string $state): string => $state ?: '-'),
 
                 Tables\Columns\TextColumn::make('furnis_count')
                     ->label('Contador de Mobis')

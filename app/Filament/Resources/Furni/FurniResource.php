@@ -176,8 +176,7 @@ class FurniResource extends Resource
                     ->options([
                         'up' => 'Subiu',
                         'down' => 'Caiu',
-                        'regul
-                        ar' => 'Manteve'
+                        'regular' => 'Manteve'
                     ]),
 
                 Filters\Filter::make('created_at')
