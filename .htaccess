@@ -1,6 +1,14 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
 
+<IfModule mod_dir.c>
+DirectoryIndex index.php
+</IfModule>
+
+<IfModule mod_negotiation.c>
+Options -MultiViews -Indexes
+</IfModule>
+
 # Handle server-forced legacy entry points without external redirects.
 RewriteRule ^index/?$ index.php [L,NC]
 RewriteRule ^public/?$ index.php [L,NC]
