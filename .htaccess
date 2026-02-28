@@ -1,16 +1,12 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
 
-# Root should load /index.php
-RewriteRule ^index\.php$ - [L]
-RewriteRule ^$ index.php [L]
+# Skip if already inside public
+RewriteCond %{REQUEST_URI} !^/public/
 
-# Redirect explicit /public requests from the browser only
-RewriteCond %{THE_REQUEST} \s/+public(?:/|\s|\?) [NC]
-RewriteRule ^public/?$ /index.php [R=301,L]
-RewriteCond %{THE_REQUEST} \s/+public(?:/|\s|\?) [NC]
-RewriteRule ^public/(.*)$ /$1 [R=301,L]
+# Skip existing files and directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 
-# Internally serve everything else from /public
-RewriteRule ^(.+)$ public/$1 [L]
+RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
