@@ -33,12 +33,15 @@
                         </span>
                     @enderror
                 </div>
-                <div class="default-box full">
+                <div class="auth-actions">
                     <button class="login" type="submit">Entrar</button>
                     <p class="text-white mb-0 pb-0 mt-2">
                         ¿Todavía no tienes una cuenta?
                         <a href="{{ route('web.register') }}">Regístrate aquí</a>.
                     </p>
+                    <a class="secondary-auth-btn" href="{{ route('web.password.request') }}">
+                        ¿Olvidaste la Contraseña? Restablecela aquí
+                    </a>
                 </div>
             </form>
         </div>

@@ -6,7 +6,7 @@
                 $navigationSlug = $navigation->slug;
                 $navigationLabelSlug = \Illuminate\Support\Str::slug($navigation->label);
                 $navigationLabelLower = \Illuminate\Support\Str::lower($navigation->label);
-                $navigationDisplayLabel = in_array($navigationLabelLower, ['habboacademy', 'habbo academy'])
+                $navigationDisplayLabel = in_array($navigationLabelLower, ['habboacademy', 'habbo academy', 'habble'])
                     ? 'Habble'
                     : ($navigationLabelLower === 'placas' ? 'Habbo' : $navigation->label);
                 $iconPath = parse_url((string) $navigation->hover_icon, PHP_URL_PATH);

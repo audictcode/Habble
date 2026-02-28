@@ -1,4 +1,4 @@
-const HabboAcademy = {
+const Habble = {
     init() {
         this.initEssentials();
         
@@ -125,4 +125,4 @@ const HabboAcademy = {
     },
 }
 
-export default HabboAcademy
+export default Habble

@@ -12,13 +12,13 @@
 
         <div class="default-box full p-4 verification-box">
             @if (session('success'))
-                <div class="alert alert-success" role="alert">
+                <div class="alert alert-success verification-alert" role="alert">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if ($errors->has('verification'))
-                <div class="alert alert-danger" role="alert">
+                <div class="alert alert-danger verification-alert" role="alert">
                     {{ $errors->first('verification') }}
                 </div>
             @endif
@@ -44,7 +44,7 @@
             </div>
 
             @if ($user->habbo_verified_at)
-                <p class="text-success mb-0">
+                <p class="text-white mb-0">
                     <strong>Estado:</strong> Verificado el {{ $user->habbo_verified_at->format('d/m/Y H:i') }}
                 </p>
             @endif

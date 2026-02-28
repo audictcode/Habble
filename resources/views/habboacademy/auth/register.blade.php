@@ -97,11 +97,11 @@
                     {!! htmlFormSnippet() !!}
                 </div>
                 @endif
-                <div class="default-box full">
+                <div class="auth-actions">
                     <button class="join" type="submit">Registrarse</button>
                     <p class="text-white mb-0 pb-0 mt-2">
-                        ¿Todavía no tienes una cuenta?
-                        <a href="{{ route('web.login') }}">Inicia sesión</a>.
+                        ¿Ya tienes una cuenta?
+                        <a href="{{ route('web.login') }}">Inicia sesión aquí</a>.
                     </p>
                 </div>
             </form>

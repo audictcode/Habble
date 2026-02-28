@@ -1,12 +1,12 @@
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
- * building robust, powerful web applications using Vue and Laravel.
+ * building robust, powerful web applications using Vue and Habble.
  */
 
 require('./bootstrap');
 const { default: Axios } = require('./external/Axios.js');
-const { default: HabboAcademy } = require('./habboacademy/default');
+const { default: Habble } = require('./habboacademy/default');
 import TurbolinksAdapter from 'vue-turbolinks'
 
 window.Vue = require('vue').default
@@ -33,9 +33,9 @@ files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(
  */
 
 document.addEventListener('turbolinks:load', () => {
-    const habboAcademyApp = new Vue({
+    const habbleApp = new Vue({
         el: '#app'
     });
 
-    HabboAcademy.init()
+    Habble.init()
 })
