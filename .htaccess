@@ -1,15 +1,1 @@
-<IfModule mod_rewrite.c>
-RewriteEngine On
-
-# Force static assets to resolve from /public (Windows root has placeholder files named css/js/images)
-RewriteRule ^(css|js|images)/(.*)$ public/$1/$2 [L,NC]
-
-# Skip if already inside public
-RewriteCond %{REQUEST_URI} !^/public/
-
-# Skip existing files and directories
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-
-RewriteRule ^(.*)$ public/$1 [L]
-</IfModule>
+<IfModule mod_rewrite.c>RewriteEngine On# Redirect browser requests from /public to clean URLs.RewriteCond %{THE_REQUEST} \s/+public/?(?:[?\s]|$) [NC]RewriteRule ^public/?$ /home [R=301,L]RewriteCond %{THE_REQUEST} \s/+public/ [NC]RewriteRule ^public/(.*)$ /$1 [R=301,L]# Force static assets to resolve from /public (Windows root has placeholder files named css/js/images)RewriteRule ^(css|js|images)/(.*)$ public/$1/$2 [L,NC]# Skip if already inside publicRewriteCond %{REQUEST_URI} !^/public/# Skip existing files and directoriesRewriteCond %{REQUEST_FILENAME} !-fRewriteCond %{REQUEST_FILENAME} !-dRewriteRule ^(.*)$ public/$1 [L]</IfModule>
