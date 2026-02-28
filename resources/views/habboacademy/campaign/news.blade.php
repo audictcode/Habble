@@ -92,6 +92,25 @@
         font-size: 1.6rem;
         color: #12306b;
     }
+    .campaign-title-category {
+        margin: 0 0 10px 0;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        background: rgba(0, 0, 0, 0.32);
+        color: #fff;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .campaign-title-category-static {
+        border-color: #d4def7;
+        background: #f3f7ff;
+        color: #21417a;
+    }
     .campaign-meta-row {
         display: flex;
         flex-wrap: wrap;
@@ -259,6 +278,20 @@
     .campaign-news-title {
         margin: 0 0 6px 0;
         color: #fff;
+    }
+    .campaign-news-category {
+        margin: 0 0 6px 0;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(0, 0, 0, 0.26);
+        color: #fff;
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
     }
     .campaign-news-excerpt {
         margin: 0;
@@ -435,6 +468,9 @@
 <div class="container mt-4 mb-4">
     <div class="default-box full p-4">
         <h2 class="mb-3">{{ $title }}</h2>
+        <p class="mb-3">
+            <a href="{{ url('/pages/todas-las-noticias') }}" class="campaign-news-button">Ir a todas las noticias</a>
+        </p>
 
         @if($selectedNews)
             @include('habboacademy.campaign.partials.article-card', ['campaign' => $selectedNews])
@@ -448,12 +484,14 @@
                                 $detailUrl = url('/pages/noticias-campana?entry=' . $campaign->id);
                                 $authorName = $campaign->author_name ?: 'Equipo HK';
                                 $authorAvatar = $campaign->author_avatar_url ?: ('https://www.habbo.es/habbo-imaging/avatarimage?user=' . urlencode($authorName) . '&direction=2&head_direction=2&headonly=1&size=l');
+                                $categoryName = optional($campaign->category)->name ?: (($campaign->target_page === 'informacion-campana') ? 'Información campaña' : 'Noticias campaña');
                             @endphp
                             <article class="campaign-news-item {{ filled($bannerValue) ? '' : 'no-image' }}" @if(filled($bannerValue)) style="background-image:url('{{ $bannerValue }}')" @endif>
                                 <a class="campaign-news-link" href="{{ $detailUrl }}">
                                     <div class="campaign-news-content">
                                         <div class="campaign-news-head">
                                             <h3 class="campaign-news-title">{{ $campaign->title }}</h3>
+                                            <p class="campaign-news-category">{{ $categoryName }}</p>
                                             @if(filled($campaign->excerpt))
                                                 <p class="campaign-news-excerpt">{{ $campaign->excerpt }}</p>
                                             @endif

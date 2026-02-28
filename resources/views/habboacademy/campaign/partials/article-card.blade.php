@@ -108,6 +108,7 @@
     $authorName = $campaign->author_name ?: 'Reportero';
     $authorAvatar = $campaign->author_avatar_url ?: ('https://www.habbo.es/habbo-imaging/avatarimage?user=' . urlencode($authorName) . '&direction=2&head_direction=2&headonly=1&size=l');
     $publishedAtText = optional($campaign->published_at ?: $campaign->created_at)->format('d/m/Y H:i');
+    $categoryName = optional($campaign->category)->name ?: ($isInfoCampaign ? 'Información campaña' : 'Noticias campaña');
     $filteredInfoCells = [];
     if (is_array($campaign->info_cells)) {
         $filteredInfoCells = collect($campaign->info_cells)
@@ -131,6 +132,7 @@
             <div class="campaign-banner-overlay">
                 <div class="campaign-banner-top">
                     <h1 class="campaign-title">{{ $titleText }}</h1>
+                    <p class="campaign-title-category">{{ $categoryName }}</p>
                     @if(filled($excerptText))
                         <p class="campaign-banner-excerpt">{{ $excerptText }}</p>
                     @endif
@@ -148,6 +150,7 @@
         </div>
     @else
         <h1 class="campaign-title">{{ $titleText }}</h1>
+        <p class="campaign-title-category campaign-title-category-static">{{ $categoryName }}</p>
     @endif
 
     @if(!filled($bannerValue) && filled($excerptText))

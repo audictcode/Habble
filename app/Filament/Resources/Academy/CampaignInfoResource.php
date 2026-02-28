@@ -9,7 +9,9 @@ use Filament\Resources\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Grid;
 use App\Models\Academy\CampaignInfo;
+use App\Models\Article\ArticleCategory;
 use App\Filament\Resources\Academy\CampaignInfoResource\Pages;
+use Illuminate\Support\Facades\Schema;
 
 class CampaignInfoResource extends Resource
 {
@@ -27,17 +29,31 @@ class CampaignInfoResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $hasCategoryColumn = Schema::hasColumn('campaign_infos', 'category_id');
+
         return $form
             ->schema([
                 Grid::make(2)->schema([
+                    Forms\Components\BelongsToSelect::make('category_id')
+                        ->label('Categoría')
+                        ->relationship('category', 'name')
+                        ->options(ArticleCategory::query()->orderBy('name')->pluck('name', 'id'))
+                        ->searchable()
+                        ->required($hasCategoryColumn)
+                        ->helperText('Gestiona categorías en "Noticias > Gestionar Categorias". Para la ubicación automática usa "Noticias campaña" o "Información campaña".')
+                        ->visible($hasCategoryColumn)
+                        ->dehydrated($hasCategoryColumn)
+                        ->columnSpan(2),
+
                     Forms\Components\Select::make('target_page')
                         ->label('Publicar en')
                         ->options([
                             'informacion-campana' => 'Información campaña',
                             'noticias-campana' => 'Noticias campaña',
                         ])
-                        ->default('informacion-campana')
-                        ->required(),
+                        ->default('noticias-campana')
+                        ->required(!$hasCategoryColumn)
+                        ->visible(!$hasCategoryColumn),
 
                     Forms\Components\TextInput::make('month_label')
                         ->label('Mes')
@@ -66,29 +82,29 @@ class CampaignInfoResource extends Resource
                     Forms\Components\TextInput::make('primary_button_text')
                         ->label('Botón principal')
                         ->placeholder('Iniciar sesión')
-                        ->hidden(fn (callable $get) => $get('target_page') === 'informacion-campana'),
+                        ->hidden(fn (callable $get) => self::isInfoCampaignCategory($get('category_id'))),
                     Forms\Components\TextInput::make('primary_button_url')
                         ->label('URL botón principal')
                         ->placeholder('/login')
-                        ->hidden(fn (callable $get) => $get('target_page') === 'informacion-campana'),
+                        ->hidden(fn (callable $get) => self::isInfoCampaignCategory($get('category_id'))),
 
                     Forms\Components\TextInput::make('secondary_button_text')
                         ->label('Botón secundario')
                         ->placeholder('Registrarse')
-                        ->hidden(fn (callable $get) => $get('target_page') === 'informacion-campana'),
+                        ->hidden(fn (callable $get) => self::isInfoCampaignCategory($get('category_id'))),
                     Forms\Components\TextInput::make('secondary_button_url')
                         ->label('URL botón secundario')
                         ->placeholder('/register')
-                        ->hidden(fn (callable $get) => $get('target_page') === 'informacion-campana'),
+                        ->hidden(fn (callable $get) => self::isInfoCampaignCategory($get('category_id'))),
 
                     Forms\Components\ColorPicker::make('primary_button_color')
                         ->label('Color botón principal')
                         ->default('#0095ff')
-                        ->hidden(fn (callable $get) => $get('target_page') === 'informacion-campana'),
+                        ->hidden(fn (callable $get) => self::isInfoCampaignCategory($get('category_id'))),
                     Forms\Components\ColorPicker::make('secondary_button_color')
                         ->label('Color botón secundario')
                         ->default('#1f2937')
-                        ->hidden(fn (callable $get) => $get('target_page') === 'informacion-campana'),
+                        ->hidden(fn (callable $get) => self::isInfoCampaignCategory($get('category_id'))),
 
                     Forms\Components\DateTimePicker::make('published_at')
                         ->label('Fecha de publicación'),
@@ -114,9 +130,17 @@ class CampaignInfoResource extends Resource
                     ->searchable()
                     ->limit(40),
 
-                Tables\Columns\TextColumn::make('target_page')
-                    ->label('Sección')
-                    ->formatStateUsing(fn ($state) => $state === 'noticias-campana' ? 'Noticias campaña' : 'Información campaña'),
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label('Categoría')
+                    ->formatStateUsing(function ($state, CampaignInfo $record) {
+                        if (filled($state)) {
+                            return (string) $state;
+                        }
+
+                        return $record->target_page === 'noticias-campana'
+                            ? 'Noticias campaña'
+                            : 'Información campaña';
+                    }),
 
                 Tables\Columns\TextColumn::make('month_label')
                     ->label('Mes')
@@ -139,5 +163,17 @@ class CampaignInfoResource extends Resource
             'create' => Pages\CreateCampaignInfo::route('/create'),
             'edit' => Pages\EditCampaignInfo::route('/{record}/edit'),
         ];
+    }
+
+    private static function isInfoCampaignCategory($categoryId): bool
+    {
+        $category = ArticleCategory::query()->find((int) $categoryId);
+        if (!$category) {
+            return false;
+        }
+
+        $normalizedName = \Illuminate\Support\Str::slug((string) $category->name);
+
+        return in_array($normalizedName, ['informacion-campana', 'informacion-campana-mensual', 'info-campana'], true);
     }
 }

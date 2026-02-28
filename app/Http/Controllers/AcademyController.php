@@ -6,12 +6,14 @@ use App\Models\{
     Topic, Slide, Article, Badge, DailyMission,
     Topic\TopicCategory,
 };
+use App\Models\Article\ArticleCategory;
 use App\Models\Academy\CampaignInfo;
 use App\Models\Academy\CampaignInfoComment;
 use App\Models\FurniValue;
 use App\Models\WebGame;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -127,13 +129,7 @@ class AcademyController extends Controller
         $hasHabboAssetsDate = Schema::hasColumn('badges', 'habboassets_source_created_at');
         $badgeReferralParams = [];
 
-        $latestNewsCampaign = CampaignInfo::query()
-            ->where('target_page', 'noticias-campana')
-            ->where('active', true)
-            ->where(function ($query) {
-                $query->whereNull('published_at')
-                    ->orWhere('published_at', '<=', now());
-            })
+        $latestNewsCampaign = $this->campaignQueryByPage('noticias-campana')
             ->orderByDesc('published_at')
             ->orderByDesc('id')
             ->first();
@@ -278,13 +274,7 @@ class AcademyController extends Controller
             $hasHabboAssetsDate = Schema::hasColumn('badges', 'habboassets_source_created_at');
             $badgeReferralParams = [];
 
-            $latestNewsCampaign = CampaignInfo::query()
-                ->where('target_page', 'noticias-campana')
-                ->where('active', true)
-                ->where(function ($query) {
-                    $query->whereNull('published_at')
-                        ->orWhere('published_at', '<=', now());
-                })
+            $latestNewsCampaign = $this->campaignQueryByPage('noticias-campana')
                 ->orderByDesc('published_at')
                 ->orderByDesc('id')
                 ->first();
@@ -409,10 +399,11 @@ class AcademyController extends Controller
             return view('habboacademy.badges.verification', compact('title', 'slug'));
         }
 
-        if (in_array($normalizedSlug, ['noticias', 'novedades', 'contenidos', 'contents'], true)) {
-            $title = in_array($normalizedSlug, ['contenidos', 'contents'], true) ? 'Contenidos' : 'Noticias';
+        if (in_array($normalizedSlug, ['noticias', 'novedades', 'contenidos', 'contents', 'todas-las-noticias'], true)) {
+            $title = 'Todas las noticias';
+
             $articlesQuery = Article::query()
-                ->with('user')
+                ->with(['user', 'category'])
                 ->whereReviewed(true)
                 ->whereStatus(true)
                 ->orderByDesc('fixed');
@@ -426,23 +417,33 @@ class AcademyController extends Controller
 
             $articles = $articlesQuery
                 ->orderByDesc('id')
-                ->paginate(20)
-                ->withQueryString();
+                ->get();
 
-            $slug = $normalizedSlug;
+            $hasCampaignCategoryColumn = Schema::hasColumn('campaign_infos', 'category_id');
+            $newsCampaignCategoryIds = $this->campaignCategoryIdsForPage('noticias-campana');
+            $infoCampaignCategoryIds = $this->campaignCategoryIdsForPage('informacion-campana');
+            $campaignCategoryIds = array_values(array_unique(array_merge($newsCampaignCategoryIds, $infoCampaignCategoryIds)));
 
-            return view('habboacademy.news.index', compact('title', 'slug', 'articles'));
+            $campaignNews = $this->campaignBaseQuery()
+                ->where(function ($query) use ($campaignCategoryIds, $hasCampaignCategoryColumn) {
+                    $query->whereIn('target_page', ['noticias-campana', 'informacion-campana']);
+                    if ($hasCampaignCategoryColumn && !empty($campaignCategoryIds)) {
+                        $query->orWhereIn('category_id', $campaignCategoryIds);
+                    }
+                })
+                ->orderByDesc('published_at')
+                ->orderByDesc('id')
+                ->get();
+
+            $newsItems = $this->paginateMergedNews($articles, $campaignNews, 20);
+            $slug = 'todas-las-noticias';
+
+            return view('habboacademy.news.index', compact('title', 'slug', 'newsItems'));
         }
 
         if (in_array($normalizedSlug, ['noticias-campana', 'noticias-campaña'], true)) {
             $title = 'Noticias campaña';
-            $campaignNewsQuery = CampaignInfo::query()
-                ->where('target_page', 'noticias-campana')
-                ->where('active', true)
-                ->where(function ($query) {
-                    $query->whereNull('published_at')
-                        ->orWhere('published_at', '<=', now());
-                })
+            $campaignNewsQuery = $this->campaignQueryByPage('noticias-campana')
                 ->orderByDesc('published_at')
                 ->orderByDesc('id');
 
@@ -459,30 +460,6 @@ class AcademyController extends Controller
             }
 
             $campaignNews = $selectedNews ? collect([$selectedNews]) : $campaignNewsQuery->paginate(10);
-
-            if (!$selectedNews && $campaignNews instanceof \Illuminate\Contracts\Pagination\Paginator && $campaignNews->count() === 0) {
-                $articlesQuery = Article::query()
-                    ->with('user')
-                    ->whereReviewed(true)
-                    ->whereStatus(true)
-                    ->orderByDesc('fixed');
-
-                if (Schema::hasColumn('articles', 'published_at')) {
-                    $articlesQuery->where(function ($query) {
-                        $query->whereNull('published_at')
-                            ->orWhere('published_at', '<=', now());
-                    })->orderByDesc('published_at');
-                }
-
-                $articles = $articlesQuery
-                    ->orderByDesc('id')
-                    ->paginate(20)
-                    ->withQueryString();
-
-                $slug = 'noticias-campana';
-
-                return view('habboacademy.news.index', compact('title', 'slug', 'articles'));
-            }
 
             $slug = 'noticias-campana';
 
@@ -521,13 +498,7 @@ class AcademyController extends Controller
     public function campaignInfoPage(?string $campaignSlug = null)
     {
         $slug = 'informacion-campana';
-        $campaignInfos = CampaignInfo::query()
-            ->where('target_page', 'informacion-campana')
-            ->where('active', true)
-            ->where(function ($query) {
-                $query->whereNull('published_at')
-                    ->orWhere('published_at', '<=', now());
-            })
+        $campaignInfos = $this->campaignQueryByPage('informacion-campana')
             ->orderByDesc('published_at')
             ->orderByDesc('id')
             ->get();
@@ -560,6 +531,100 @@ class AcademyController extends Controller
         $title = $campaignInfo?->title ?: 'Información campaña';
 
         return view('habboacademy.campaign.info', compact('title', 'slug', 'campaignInfo', 'campaignComments'));
+    }
+
+    private function campaignBaseQuery()
+    {
+        return CampaignInfo::query()
+            ->with('category')
+            ->where('active', true)
+            ->where(function ($query) {
+                $query->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            });
+    }
+
+    private function campaignQueryByPage(string $page)
+    {
+        $normalizedPage = $this->normalizeCampaignCategoryName($page);
+        $hasCampaignCategoryColumn = Schema::hasColumn('campaign_infos', 'category_id');
+        $categoryIds = $this->campaignCategoryIdsForPage($normalizedPage);
+
+        return $this->campaignBaseQuery()
+            ->where(function ($query) use ($normalizedPage, $categoryIds, $hasCampaignCategoryColumn) {
+                $query->where('target_page', $normalizedPage);
+
+                if ($hasCampaignCategoryColumn && !empty($categoryIds)) {
+                    $query->orWhereIn('category_id', $categoryIds);
+                }
+            });
+    }
+
+    private function campaignCategoryIdsForPage(string $page): array
+    {
+        if (!Schema::hasTable('articles_categories')) {
+            return [];
+        }
+
+        $normalizedPage = $this->normalizeCampaignCategoryName($page);
+
+        return ArticleCategory::query()
+            ->get(['id', 'name'])
+            ->filter(function (ArticleCategory $category) use ($normalizedPage) {
+                return $this->normalizeCampaignCategoryName((string) $category->name) === $normalizedPage;
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    private function normalizeCampaignCategoryName(string $value): string
+    {
+        $slug = Str::slug($value);
+
+        if (in_array($slug, ['noticias-campana', 'noticia-campana', 'noticias-de-campana'], true)) {
+            return 'noticias-campana';
+        }
+
+        if (in_array($slug, ['informacion-campana', 'informacion-campana-mensual', 'info-campana'], true)) {
+            return 'informacion-campana';
+        }
+
+        return $slug;
+    }
+
+    private function paginateMergedNews(Collection $articles, Collection $campaignNews, int $perPage = 20): LengthAwarePaginator
+    {
+        $merged = $articles
+            ->concat($campaignNews)
+            ->sortByDesc(function ($item) {
+                $date = $item->published_at ?? $item->created_at ?? null;
+                $timestamp = 0;
+
+                if ($date instanceof \DateTimeInterface) {
+                    $timestamp = $date->getTimestamp();
+                } elseif ($date) {
+                    $timestamp = strtotime((string) $date) ?: 0;
+                }
+
+                return sprintf('%012d%012d', $timestamp, (int) ($item->id ?? 0));
+            })
+            ->values();
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $pageItems = $merged->forPage($currentPage, $perPage)->values();
+
+        return new LengthAwarePaginator(
+            $pageItems,
+            $merged->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
     }
 
     private function extractReferralParamsFromUrl(string $url): array

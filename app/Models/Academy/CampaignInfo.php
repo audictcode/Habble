@@ -4,6 +4,7 @@ namespace App\Models\Academy;
 
 use App\Models\User;
 use App\Models\Academy\CampaignInfoComment;
+use App\Models\Article\ArticleCategory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -15,6 +16,7 @@ class CampaignInfo extends Model
         'title',
         'slug',
         'target_page',
+        'category_id',
         'month_label',
         'excerpt',
         'banner_image_path',
@@ -50,5 +52,10 @@ class CampaignInfo extends Model
     public function comments()
     {
         return $this->hasMany(CampaignInfoComment::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(ArticleCategory::class, 'category_id');
     }
 }

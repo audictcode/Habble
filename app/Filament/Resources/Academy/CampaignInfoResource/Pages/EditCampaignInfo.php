@@ -4,11 +4,21 @@ namespace App\Filament\Resources\Academy\CampaignInfoResource\Pages;
 
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Str;
+use App\Models\Article\ArticleCategory;
 use App\Filament\Resources\Academy\CampaignInfoResource;
 
 class EditCampaignInfo extends EditRecord
 {
     protected static string $resource = CampaignInfoResource::class;
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (empty($data['category_id'])) {
+            $data['category_id'] = $this->resolveCategoryIdFromTargetPage((string) ($data['target_page'] ?? ''));
+        }
+
+        return $data;
+    }
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
@@ -24,7 +34,8 @@ class EditCampaignInfo extends EditRecord
             $data['author_avatar_url'] = 'https://www.habbo.' . $hotel . '/habbo-imaging/avatarimage?user=' . urlencode($displayName) . '&direction=2&head_direction=2&headonly=1&size=l';
         }
 
-        $data['slug'] = $data['target_page'] ?? 'informacion-campana';
+        $data['target_page'] = $this->resolveTargetPageFromCategoryId($data['category_id'] ?? null, $data['target_page'] ?? 'noticias-campana');
+        $data['slug'] = $data['target_page'];
 
         if (($data['target_page'] ?? '') === 'informacion-campana') {
             $data['primary_button_text'] = null;
@@ -38,6 +49,47 @@ class EditCampaignInfo extends EditRecord
         }
 
         return $data;
+    }
+
+    private function resolveTargetPageFromCategoryId($categoryId, string $fallback = 'noticias-campana'): string
+    {
+        $category = ArticleCategory::query()->find((int) $categoryId);
+        if (!$category) {
+            return $fallback;
+        }
+
+        $normalizedName = Str::slug((string) $category->name);
+        if (in_array($normalizedName, ['informacion-campana', 'informacion-campana-mensual', 'info-campana'], true)) {
+            return 'informacion-campana';
+        }
+
+        if (in_array($normalizedName, ['noticias-campana', 'noticia-campana', 'noticias-de-campana'], true)) {
+            return 'noticias-campana';
+        }
+
+        return $fallback;
+    }
+
+    private function resolveCategoryIdFromTargetPage(string $targetPage): ?int
+    {
+        $normalizedTarget = Str::slug($targetPage);
+        if (!in_array($normalizedTarget, ['noticias-campana', 'informacion-campana'], true)) {
+            return null;
+        }
+
+        $category = ArticleCategory::query()
+            ->get(['id', 'name'])
+            ->first(function (ArticleCategory $item) use ($normalizedTarget) {
+                $normalizedName = Str::slug((string) $item->name);
+
+                if ($normalizedTarget === 'noticias-campana') {
+                    return in_array($normalizedName, ['noticias-campana', 'noticia-campana', 'noticias-de-campana'], true);
+                }
+
+                return in_array($normalizedName, ['informacion-campana', 'informacion-campana-mensual', 'info-campana'], true);
+            });
+
+        return $category ? (int) $category->id : null;
     }
 
     private function normalizeBannerImagePath(string $value): ?string

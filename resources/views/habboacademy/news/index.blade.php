@@ -52,6 +52,20 @@
         font-weight: 700;
         color: #fff;
     }
+    .news-slide-category {
+        margin: 0 0 8px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(0, 0, 0, 0.24);
+        color: #fff;
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
     .news-slide-meta {
         margin: 0 0 8px;
         font-size: 12px;
@@ -110,23 +124,49 @@
     <div class="default-box full p-4">
         <h2 class="mb-3">{{ $title }}</h2>
 
+        @php
+            $listing = $newsItems ?? $articles;
+        @endphp
+
         <div class="news-list">
-            @forelse($articles as $article)
+            @forelse($listing as $article)
                 @php
-                    $bannerUrl = \Illuminate\Support\Str::contains((string) $article->image_path, 'articles')
-                        ? asset('storage/' . ltrim((string) $article->image_path, '/'))
-                        : (string) $article->image_path;
-                    $author = $article->user;
-                    $authorName = $author?->habbo_name ?: $author?->username ?: ((string) ($article->reviewer ?: 'Equipo HK'));
-                    $authorHotel = $author?->habbo_hotel ?: 'es';
-                    $authorAvatar = 'https://www.habbo.' . $authorHotel . '/habbo-imaging/avatarimage?user=' . urlencode($authorName) . '&direction=2&head_direction=2&headonly=1&size=l';
+                    $isCampaign = $article instanceof \App\Models\Academy\CampaignInfo;
+
+                    if ($isCampaign) {
+                        $bannerUrl = academyMediaUrl((string) ($article->banner_image_path ?? ''));
+                        $authorName = $article->author_name ?: 'Equipo HK';
+                        $authorAvatar = $article->author_avatar_url ?: ('https://www.habbo.es/habbo-imaging/avatarimage?user=' . urlencode($authorName) . '&direction=2&head_direction=2&headonly=1&size=l');
+                        $categoryName = optional($article->category)->name ?: (($article->target_page === 'informacion-campana') ? 'Información campaña' : 'Noticias campaña');
+                        $description = filled($article->excerpt)
+                            ? (string) $article->excerpt
+                            : \Illuminate\Support\Str::limit(strip_tags((string) ($article->body_html ?? '')), 150);
+
+                        if (($article->target_page ?? '') === 'informacion-campana') {
+                            $articleUrl = url('/pages/informacion-campana/' . \Illuminate\Support\Str::slug((string) ($article->slug ?: $article->month_label ?: $article->title)));
+                        } else {
+                            $articleUrl = url('/pages/noticias-campana?entry=' . $article->id);
+                        }
+                    } else {
+                        $bannerUrl = \Illuminate\Support\Str::contains((string) $article->image_path, 'articles')
+                            ? asset('storage/' . ltrim((string) $article->image_path, '/'))
+                            : (string) $article->image_path;
+                        $author = $article->user;
+                        $authorName = $author?->habbo_name ?: $author?->username ?: ((string) ($article->reviewer ?: 'Equipo HK'));
+                        $authorHotel = $author?->habbo_hotel ?: 'es';
+                        $authorAvatar = 'https://www.habbo.' . $authorHotel . '/habbo-imaging/avatarimage?user=' . urlencode($authorName) . '&direction=2&head_direction=2&headonly=1&size=l';
+                        $categoryName = optional($article->category)->name ?: 'Noticias';
+                        $description = (string) $article->description;
+                        $articleUrl = route('web.articles.show', ['id' => $article->id, 'slug' => $article->slug]);
+                    }
                 @endphp
                 <article class="news-slide-card {{ filled($bannerUrl) ? '' : 'no-image' }}" @if(filled($bannerUrl)) style="background-image:url('{{ $bannerUrl }}')" @endif>
-                    <a class="news-slide-link" href="{{ route('web.articles.show', ['id' => $article->id, 'slug' => $article->slug]) }}">
+                    <a class="news-slide-link" href="{{ $articleUrl }}">
                         <div class="news-slide-content">
                             <div class="news-slide-head">
                                 <h3>{{ $article->title }}</h3>
-                                <p>{{ $article->description }}</p>
+                                <p class="news-slide-category">{{ $categoryName }}</p>
+                                <p>{{ $description }}</p>
                             </div>
                             <p class="news-author">
                                 <img src="{{ $authorAvatar }}" alt="{{ $authorName }} avatar">
@@ -144,7 +184,7 @@
         </div>
 
         <div class="mt-3">
-            {{ $articles->links('habboacademy.utils.custom_paginator') }}
+            {{ $listing->links('habboacademy.utils.custom_paginator') }}
         </div>
     </div>
 </div>

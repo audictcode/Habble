@@ -92,7 +92,7 @@ class Navigation extends Model
                 'label' => 'Habble',
                 'small_icon' => 'fab fa-hackerrank',
                 'hover_icon' => asset('/images/menu/habble.png'),
-                'slug' => '/pages/noticias',
+                'slug' => '/pages/todas-las-noticias',
                 'order' => 1,
                 'visible' => true,
                 'sub' => [
@@ -116,11 +116,11 @@ class Navigation extends Model
                 'label' => 'Contenidos',
                 'small_icon' => 'fab fa-neos',
                 'hover_icon' => asset('/images/menu/contenidos.png'),
-                'slug' => '/pages/noticias',
+                'slug' => '/pages/todas-las-noticias',
                 'order' => 3,
                 'visible' => true,
                 'sub' => [
-                    ['label' => 'Todas las noticias', 'slug' => '/pages/noticias'],
+                    ['label' => 'Todas las noticias', 'slug' => '/pages/todas-las-noticias'],
                     ['label' => 'Foro', 'slug' => '/pages/foro'],
                     ['label' => 'Noticias campaña', 'slug' => '/pages/noticias-campana'],
                     ['label' => 'Informacion campaña', 'slug' => '/pages/informacion-campana'],

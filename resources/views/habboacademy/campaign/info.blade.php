@@ -92,6 +92,25 @@
         font-size: 1.6rem;
         color: #12306b;
     }
+    .campaign-title-category {
+        margin: 0 0 10px 0;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        background: rgba(0, 0, 0, 0.32);
+        color: #fff;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .campaign-title-category-static {
+        border-color: #d4def7;
+        background: #f3f7ff;
+        color: #21417a;
+    }
     .campaign-meta-row {
         display: flex;
         flex-wrap: wrap;
