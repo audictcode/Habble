@@ -300,6 +300,12 @@ class HkConsole extends Page
             return;
         }
 
+        if (!$this->canRunPhpBinaryInShell($phpBinary)) {
+            $this->appendOutput("No se encontró binario PHP CLI utilizable para segundo plano ({$phpBinary}). Ejecutando en primer plano...");
+            $this->runInCurrentProcess($commandName, $arguments, $commandString, $logPath, $lockPath, $pidPath);
+            return;
+        }
+
         $exec = sprintf(
             'cd %s && printf %s >> %s 2>&1 && ( %s %s %s >> %s 2>&1 < /dev/null & echo $! > %s )',
             escapeshellarg($basePath),
@@ -407,6 +413,11 @@ class HkConsole extends Page
     {
         $candidates = collect([
             $configuredBinary,
+            (string) (defined('PHP_BINARY') ? PHP_BINARY : ''),
+            '/usr/local/bin/php',
+            '/opt/cpanel/ea-php82/root/usr/bin/php',
+            '/opt/cpanel/ea-php81/root/usr/bin/php',
+            '/opt/cpanel/ea-php80/root/usr/bin/php',
             '/Applications/MAMP/bin/php/php8.3.30/bin/php',
             '/Applications/MAMP/bin/php/php8.4.17/bin/php',
             '/Applications/MAMP/bin/php/php8.5.2/bin/php',
@@ -433,6 +444,28 @@ class HkConsole extends Page
         }
 
         return 'php';
+    }
+
+    private function canRunPhpBinaryInShell(string $phpBinary): bool
+    {
+        $phpBinary = trim($phpBinary);
+        if ($phpBinary === '') {
+            return false;
+        }
+
+        if ($phpBinary !== 'php') {
+            return is_file($phpBinary) && is_executable($phpBinary);
+        }
+
+        if ($this->isBackgroundExecUnavailable()) {
+            return false;
+        }
+
+        $output = [];
+        $exitCode = 1;
+        @exec('command -v php 2>/dev/null', $output, $exitCode);
+
+        return $exitCode === 0 && !empty($output);
     }
 
     private function slugForLock(string $commandName): string
