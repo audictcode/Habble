@@ -11,8 +11,6 @@ use Illuminate\Support\Str;
 
 class HkConsole extends Page
 {
-    private const COMMAND_LOCK_TTL_SECONDS = 7200;
-
     protected static ?string $navigationIcon = 'heroicon-o-terminal';
 
     protected static ?string $navigationGroup = 'Panel';
@@ -71,7 +69,6 @@ class HkConsole extends Page
                 'background' => true,
                 'arguments' => [
                     '--all' => true,
-                    '--limit' => 2000,
                 ],
             ],
             'badges_repair_metadata' => [
@@ -83,21 +80,16 @@ class HkConsole extends Page
                 ],
             ],
             'badges_full_sync' => [
-                'label' => 'Full sync badges (rápido, 1 página)',
+                'label' => 'Full sync badges',
                 'command' => 'badges:full-sync',
                 'background' => true,
-                'arguments' => [
-                    '--limit' => 2000,
-                    '--max-pages' => 1,
-                ],
+                'arguments' => [],
             ],
             'badges_full_sync_all' => [
                 'label' => 'Full sync badges (completo)',
                 'command' => 'badges:full-sync',
                 'background' => true,
-                'arguments' => [
-                    '--limit' => 2000,
-                ],
+                'arguments' => [],
             ],
             'furnis_import_full' => [
                 'label' => 'Import furnis HabboAssets (multi-hotel)',
@@ -105,7 +97,6 @@ class HkConsole extends Page
                 'background' => true,
                 'arguments' => [
                     '--hotels' => 'es,com,com.br,de,fr,it,nl,fi,tr',
-                    '--max-pages' => 5,
                     '--category' => 'auto',
                 ],
             ],
@@ -115,16 +106,13 @@ class HkConsole extends Page
                 'background' => true,
                 'arguments' => [
                     '--paths' => 'furni,rares,ropa,animales,efectos,sonidos',
-                    '--max-pages' => 10,
                 ],
             ],
             'furnis_sync_external' => [
                 'label' => 'Sync furnis externo (HabboAssets + Habbofurni)',
                 'command' => 'furnis:sync-external',
                 'background' => true,
-                'arguments' => [
-                    '--max-pages' => 3,
-                ],
+                'arguments' => [],
             ],
         ];
     }
@@ -224,10 +212,6 @@ class HkConsole extends Page
         try {
             [$commandName, $arguments] = $this->parseCommandLine($line);
 
-            if (!in_array($commandName, $this->getAllowedCommandNames(), true)) {
-                throw new \RuntimeException("Comando no permitido: {$commandName}");
-            }
-
             $this->appendOutput('$ ' . $line);
 
             if ($this->shouldForceBackground($commandName)) {
@@ -303,25 +287,9 @@ class HkConsole extends Page
             $commandString .= ' ' . $key . '=' . escapeshellarg((string) $value);
         }
 
-        if (File::exists($lockPath)) {
-            $isStillRunning = $this->isBackgroundProcessRunning($pidPath);
-            if (!$isStillRunning) {
-                @File::delete($lockPath);
-                @File::delete($pidPath);
-            }
-
-            $lockAge = time() - (int) @filemtime($lockPath);
-            if (File::exists($lockPath) && $lockAge >= 0 && $lockAge < self::COMMAND_LOCK_TTL_SECONDS) {
-                $minutes = max(1, (int) ceil((self::COMMAND_LOCK_TTL_SECONDS - $lockAge) / 60));
-                $this->lastRunAt = now()->format('d/m/Y H:i:s');
-                $this->commandOutput = "Ya hay una ejecución reciente para este comando:\n{$commandString}\n\nEspera ~{$minutes} min o revisa el log:\n{$logPath}";
-
-                Notification::make()
-                    ->title('Comando ya en ejecución')
-                    ->warning()
-                    ->send();
-                return;
-            }
+        if (File::exists($lockPath) && !$this->isBackgroundProcessRunning($pidPath)) {
+            @File::delete($lockPath);
+            @File::delete($pidPath);
         }
 
         @File::put($lockPath, now()->toDateTimeString());
@@ -532,17 +500,6 @@ class HkConsole extends Page
         }
 
         return $tokens;
-    }
-
-    private function getAllowedCommandNames(): array
-    {
-        return collect($this->getCommandOptions())
-            ->pluck('command')
-            ->filter(fn ($value) => is_string($value) && trim($value) !== '')
-            ->map(fn ($value) => trim((string) $value))
-            ->unique()
-            ->values()
-            ->all();
     }
 
     private function buildCommandString(string $commandName, array $arguments): string

@@ -32,7 +32,7 @@
                         wire:keydown.enter="runTypedCommand"
                         type="text"
                         class="w-full bg-transparent border-0 text-gray-900 text-sm focus:ring-0 p-0"
-                        placeholder="badges:full-sync --max-pages=1 --limit=2000"
+                        placeholder="badges:full-sync"
                     />
                 </div>
 
