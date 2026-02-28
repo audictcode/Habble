@@ -4,35 +4,17 @@ use Illuminate\Support\Facades\Route;
 
 // Index route
 Route::get('/', 'AcademyController@index')->name('academy.index');
-Route::get('/home', function () {
-    return redirect()->route('web.academy.index');
-})->name('home');
-Route::redirect('/index', '/', 301);
-Route::redirect('/index.php', '/', 301)->name('index');
-Route::get('/index.php/admin', function () {
-    return redirect('/hk');
-});
-Route::get('/admin', function () {
-    return redirect('/hk');
-});
-Route::get('/habble', function () {
-    return redirect()->route('web.pages.show', ['slug' => 'habble']);
-});
-Route::get('/habbo', function () {
-    return redirect()->route('web.pages.show', ['slug' => 'habbo']);
-});
-Route::get('/contents', function () {
-    return redirect()->route('web.pages.show', ['slug' => 'contents']);
-});
-Route::get('/contenidos', function () {
-    return redirect()->route('web.pages.show', ['slug' => 'contenidos']);
-});
-Route::get('/fancenter', function () {
-    return redirect()->route('web.pages.show', ['slug' => 'fancenter']);
-});
-Route::get('/radio', function () {
-    return redirect()->route('web.pages.show', ['slug' => 'radio']);
-});
+Route::get('/home', 'AcademyController@index')->name('home');
+Route::get('/index', 'AcademyController@index');
+Route::get('/index.php', 'AcademyController@index')->name('index');
+Route::get('/index.php/admin', 'AcademyController@page')->defaults('slug', 'hk');
+Route::get('/admin', 'AcademyController@page')->defaults('slug', 'hk');
+Route::get('/habble', 'AcademyController@index');
+Route::get('/habbo', 'AcademyController@page')->defaults('slug', 'placas');
+Route::get('/contents', 'AcademyController@page')->defaults('slug', 'contents');
+Route::get('/contenidos', 'AcademyController@page')->defaults('slug', 'contenidos');
+Route::get('/fancenter', 'AcademyController@page')->defaults('slug', 'generador-de-avatar');
+Route::get('/radio', 'AcademyController@page')->defaults('slug', 'radio');
 Route::get('/pages/informacion-campana/{campaignSlug?}', 'AcademyController@campaignInfoPage')->name('pages.campaign.info');
 Route::get('/pages/{slug}', 'AcademyController@page')->name('pages.show');
 Route::post('/radio/dj-application', 'AcademyController@submitDjApplication')->name('radio.dj-application');

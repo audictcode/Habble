@@ -1,16 +1,10 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
 
-# Canonicalize /index and /index.php to root.
-RewriteCond %{THE_REQUEST} \s/+index(?:\.php)?(?:[?\s]|$) [NC]
-RewriteRule ^index(?:\.php)?$ / [R=301,L]
-
-# Redirect browser requests from /public to clean URLs.
-RewriteCond %{THE_REQUEST} \s/+public/?(?:[?\s]|$) [NC]
-RewriteRule ^public/?$ / [R=301,L]
-
-RewriteCond %{THE_REQUEST} \s/+public/ [NC]
-RewriteRule ^public/(.*)$ /$1 [R=301,L]
+# Handle server-forced legacy entry points without external redirects.
+RewriteRule ^index/?$ index.php [L,NC]
+RewriteRule ^public/?$ index.php [L,NC]
+RewriteRule ^public/(.*)$ $1 [L,NC]
 
 # Force static assets to resolve from /public (Windows root has placeholder files named css/js/images)
 RewriteRule ^(css|js|images)/(.*)$ public/$1/$2 [L,NC]
