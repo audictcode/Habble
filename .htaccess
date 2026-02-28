@@ -1,5 +1,15 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteRule ^$ index.php [L]
-RewriteRule ^(.*)$ index.php [L]
+
+# Force static assets to resolve from /public (Windows root has placeholder files named css/js/images)
+RewriteRule ^(css|js|images)/(.*)$ public/$1/$2 [L,NC]
+
+# Skip if already inside public
+RewriteCond %{REQUEST_URI} !^/public/
+
+# Skip existing files and directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
