@@ -13,6 +13,16 @@ Route::get('/index.php/admin', function () {
 Route::get('/admin', function () {
     return redirect('/hk');
 });
+Route::get('/dj', function () {
+    $user = auth()->user();
+    $rank = (int) ($user?->rank ?? 0);
+
+    if (!$user || $user->disabled || $rank < 2 || $rank > 7) {
+        abort(403);
+    }
+
+    return view('habboacademy.dj');
+})->name('dj')->middleware('auth');
 Route::get('/habble', 'AcademyController@index');
 Route::get('/habbo', 'AcademyController@page')->defaults('slug', 'placas');
 Route::get('/contents', 'AcademyController@page')->defaults('slug', 'contents');

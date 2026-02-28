@@ -122,6 +122,8 @@
                         $currentLevel = (int) floor($userXp / $xpPerLevel) + 1;
                         $xpInLevel = $userXp % $xpPerLevel;
                         $xpProgressPercent = (int) round(($xpInLevel / $xpPerLevel) * 100);
+                        $userRank = (int) ($loggedUser?->rank ?? 0);
+                        $canAccessDj = !$loggedUser?->disabled && $userRank >= 2 && $userRank <= 7;
                         $canAccessHk = !$loggedUser?->disabled && ((int) ($loggedUser?->rank ?? 0) >= 7);
                         $hkPath = '/' . ltrim((string) config('filament.path', 'hk'), '/');
                     @endphp
@@ -192,9 +194,14 @@
                             </ul>
                         </nav>
                     </div>
+                    @if ($canAccessDj)
+                        <a class="club-button" href="{{ route('web.dj') }}" title="DJ" aria-label="DJ">
+                            DJ
+                        </a>
+                    @endif
                     @if ($canAccessHk)
-                        <a class="club-button hk-button" href="{{ url($hkPath) }}" data-turbolinks="false" data-no-turbolink="true" title="Panel administrativo" aria-label="Panel administrativo">
-                            Panel administrativo
+                        <a class="club-button hk-button" href="{{ url($hkPath) }}" data-turbolinks="false" data-no-turbolink="true" title="HK" aria-label="HK">
+                            HK
                         </a>
                     @endif
                 @endguest
