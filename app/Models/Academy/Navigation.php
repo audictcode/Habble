@@ -83,7 +83,7 @@ class Navigation extends Model
                 'label' => 'Inicio',
                 'small_icon' => 'fas fa-house-user',
                 'hover_icon' => asset('/images/menu/inicio.png'),
-                'slug' => '/home',
+                'slug' => '/',
                 'order' => 0,
                 'visible' => true,
                 'sub' => [],

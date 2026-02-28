@@ -34,7 +34,7 @@
     <div class="container-fluid p-0">
         <header class="customTransition">
             <div class="container">
-                <a href="{{ url('/home') }}" class="logo" aria-label="Home"></a>
+                <a href="{{ url('/') }}" class="logo" aria-label="Home"></a>
                 <div class="slider"></div>
                 <div
                     class="header-radio-widget"

@@ -52,9 +52,9 @@ export default function pagination({ section, box, displayName, url, limit, effe
                     if(type === 'news') {
                         setTimeout(() => {
                             $(clone).find('.autor .avatar-pequeno').attr('style', `background-image: url('${imagerLink + a.autor}/headonly=0&direction=3&head_direction=3&action=wlk&gesture=sit&size=s')`)
-                            $(clone).find('.autor span.text-truncate a').attr('href', `/home/${a.autor}`).html(a.autor)
+                            $(clone).find('.autor span.text-truncate a').attr('href', `/`).html(a.autor)
                             $(clone).find('.dados span.text-truncate[title]').attr('data-toggle', 'tooltip').attr('title', a.titulo).attr('data-original-title', a.titulo)
-                            $(clone).find('.dados span.text-truncate[title] a').attr('href', `/noticia/${a.id}/${a.url}`).html(a.titulo)
+                            $(clone).find('.dados span.text-truncate[title] a').attr('href', `/article/${a.id}/${a.url}`).html(a.titulo)
                             $(clone).find('.dados .imagem').attr('style', `background-image: url('uploads/adminUploads/${a.imagem}')`)
                             $(clone).find('.dados .imagem span[views]').html(`<i class="fas fa-eye mr-1"></i> ${a.comentarios}`)
                             $(clone).find('.dados .categoria span[category]').html(a.categoria)
@@ -77,9 +77,9 @@ export default function pagination({ section, box, displayName, url, limit, effe
                     } else if(type == 'topics') {
                         setTimeout(() => {
                             $(clone).find('span:first-of-type').attr('title', a.titulo)
-                            $(clone).find('span:first-of-type a.titulo').attr('href', `/topico/${a.id}/${a.url}`).html(a.titulo)
+                            $(clone).find('span:first-of-type a.titulo').attr('href', `/topic/${a.id}/${a.url}`).html(a.titulo)
                             $(clone).find('.dados .avatar-pequeno').attr('style', `background-image: url('${imagerLink + a.autor}/headonly=0&direction=3&head_direction=3&action=&gesture=&size=s')`)
-                            $(clone).find('.dados span.text-truncate:first-of-type').html(`<a class="text-dark" href="/home/${a.autor}">${a.autor}</a>`)
+                            $(clone).find('.dados span.text-truncate:first-of-type').html(`<a class="text-dark" href="/">${a.autor}</a>`)
                             $(clone).find('.dados span.text-truncate:last-of-type').html(`<i class="fas fa-calendar-alt mr-1"></i> ${a.time} <b class="mr-2 ml-2">·</b> <i class="fas fa-comment"></i> ${a.comentarios}`)
                             $(clone).addClass('animated '+effectIn)
                             $(sectionBox).find('.display'+displayName).append(clone)
@@ -91,7 +91,7 @@ export default function pagination({ section, box, displayName, url, limit, effe
                             $(clone).find('span[cat]').html(`<em>${a.categoria}</em><b class="ml-2 mr-2">·</b> ${a.time}`)
                             $(clone).find('span[note]').html(a.note.toString().length === 1 ? `${a.note}.0` : a.note)
                             $(clone).find('.autor .avatar-pequeno').attr('style', `background-image: url('${imagerLink + a.autor}/headonly=0&direction=3&head_direction=3&action=&gesture=&size=s')`)
-                            $(clone).find('.autor span[author]').html(`<a href="/home/${a.autor}">${a.autor}</a>`)
+                            $(clone).find('.autor span[author]').html(`<a href="/">${a.autor}</a>`)
                             $(clone).find('.autor span[comments]').html(`<i class="fas fa-comment mr-1"></i>${a.comentarios}`)
                             $(clone).addClass('animated '+effectIn)
                             $(sectionBox).find('.display'+displayName).append(clone)
@@ -100,7 +100,7 @@ export default function pagination({ section, box, displayName, url, limit, effe
                         $(clone).find('.imagem').attr('style', `background-image: url('uploads/arts/${a.imagem}')`)
                         $(clone).find('span.text-truncate[title]').html(`<a href="/tirinha/${a.id}/${a.url}">${a.titulo}</a>`)
                         $(clone).find('.avatar-grande').attr('style', `background-image: url('${imagerLink + a.autor}/headonly=0&direction=3&head_direction=3&action=&gesture=&size=l')`)
-                        $(clone).find('span.text-truncate[author]').html(`<a class="text-white" href="/home/${a.autor}">${a.autor}</a>`)
+                        $(clone).find('span.text-truncate[author]').html(`<a class="text-white" href="/">${a.autor}</a>`)
                         $(clone).addClass('animated '+effectIn)
                         $(sectionBox).find('.display'+displayName).append(clone)
                     } else if(type == 'shop') {

@@ -1,25 +1,16 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
 
-<IfModule mod_dir.c>
-DirectoryIndex index.php
-</IfModule>
-
-<IfModule mod_negotiation.c>
-Options -MultiViews -Indexes
-</IfModule>
-
-# Handle server-forced legacy entry points without external redirects.
+# Legacy entry points handled internally (no external redirect).
 RewriteRule ^index/?$ index.php [L,NC]
+RewriteRule ^home/?$ index.php [L,NC]
 RewriteRule ^public/?$ index.php [L,NC]
-RewriteRule ^public/(.*)$ $1 [L,NC]
 
-# Force static assets to resolve from /public (Windows root has placeholder files named css/js/images)
+# Static asset aliases from project root to /public.
 RewriteRule ^(css|js|images)/(.*)$ public/$1/$2 [L,NC]
 
-# Skip existing files and directories
+# Laravel front controller.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-
 RewriteRule ^ index.php [L]
 </IfModule>

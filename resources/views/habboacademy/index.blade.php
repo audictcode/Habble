@@ -326,7 +326,7 @@
                 <h1>Bienvenido a Habble</h1>
                 <p>Todo el contenido, comunidad y novedades de Habbo en un solo lugar.</p>
                 <div class="home-actions">
-                    <a href="{{ url('/home') }}" class="btn btn-primary btn-sm">Home</a>
+                    <a href="{{ url('/') }}" class="btn btn-primary btn-sm">Home</a>
                     @guest
                         <a href="{{ url('/login') }}" class="btn btn-outline-light btn-sm">Iniciar sesión</a>
                         <a href="{{ url('/register') }}" class="btn btn-success btn-sm">Registrarse</a>

@@ -25,8 +25,8 @@
                 $defaultIcon = $fallbackIconsByLabel[$navigationLabelLower] ?? 'images/menu/inicio.png';
                 $navigationIconUrl = asset($defaultIcon);
                 $fixedPathsByLabel = [
-                    'inicio' => '/home',
-                    'home' => '/home',
+                    'inicio' => '/',
+                    'home' => '/',
                     'habboacademy' => '/pages/noticias',
                     'habbo academy' => '/pages/noticias',
                     'habble' => '/pages/noticias',
@@ -43,13 +43,13 @@
                 $normalizeSlugToPath = static function (?string $rawSlug): string {
                     $slug = trim((string) $rawSlug);
                     if ($slug === '' || $slug === '/' || $slug === 'index.php' || $slug === '/index.php') {
-                        return '/home';
+                        return '/';
                     }
                     if (\Illuminate\Support\Str::startsWith($slug, ['/index.php/', 'index.php/'])) {
                         $slug = preg_replace('#^/?index\.php/#', '', $slug) ?? '';
                     }
                     if ($slug === '') {
-                        return '/home';
+                        return '/';
                     }
                     return '/' . ltrim($slug, '/');
                 };

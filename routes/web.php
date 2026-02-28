@@ -7,8 +7,12 @@ Route::get('/', 'AcademyController@index')->name('academy.index');
 Route::get('/home', 'AcademyController@index')->name('home');
 Route::get('/index', 'AcademyController@index');
 Route::get('/index.php', 'AcademyController@index')->name('index');
-Route::get('/index.php/admin', 'AcademyController@page')->defaults('slug', 'hk');
-Route::get('/admin', 'AcademyController@page')->defaults('slug', 'hk');
+Route::get('/index.php/admin', function () {
+    return redirect('/hk');
+});
+Route::get('/admin', function () {
+    return redirect('/hk');
+});
 Route::get('/habble', 'AcademyController@index');
 Route::get('/habbo', 'AcademyController@page')->defaults('slug', 'placas');
 Route::get('/contents', 'AcademyController@page')->defaults('slug', 'contents');
