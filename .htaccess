@@ -1,9 +1,13 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
 
+# Canonicalize /index and /index.php to root.
+RewriteCond %{THE_REQUEST} \s/+index(?:\.php)?(?:[?\s]|$) [NC]
+RewriteRule ^index(?:\.php)?$ / [R=301,L]
+
 # Redirect browser requests from /public to clean URLs.
 RewriteCond %{THE_REQUEST} \s/+public/?(?:[?\s]|$) [NC]
-RewriteRule ^public/?$ /home [R=301,L]
+RewriteRule ^public/?$ / [R=301,L]
 
 RewriteCond %{THE_REQUEST} \s/+public/ [NC]
 RewriteRule ^public/(.*)$ /$1 [R=301,L]

@@ -4,9 +4,11 @@ use Illuminate\Support\Facades\Route;
 
 // Index route
 Route::get('/', 'AcademyController@index')->name('academy.index');
-Route::get('/home', 'AcademyController@index')->name('home');
-Route::get('/index', 'AcademyController@index');
-Route::get('/index.php', 'AcademyController@index')->name('index');
+Route::get('/home', function () {
+    return redirect()->route('web.academy.index');
+})->name('home');
+Route::redirect('/index', '/', 301);
+Route::redirect('/index.php', '/', 301)->name('index');
 Route::get('/index.php/admin', function () {
     return redirect('/hk');
 });
