@@ -195,7 +195,7 @@
                         </nav>
                     </div>
                     @if ($canAccessDj)
-                        <a class="club-button" href="{{ route('web.dj') }}" title="DJ" aria-label="DJ">
+                        <a class="club-button" href="{{ url('/dj.php') }}" title="DJ" aria-label="DJ">
                             DJ
                         </a>
                     @endif
