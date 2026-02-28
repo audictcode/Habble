@@ -145,7 +145,7 @@ class AcademyController extends Controller
         }
 
         $latestBadgesQuery = Badge::query()
-            ->whereNotNull('image_path');
+            ->whereNotNull('code');
 
         if ($hasHabboAssetsDate) {
             $latestBadgesQuery
@@ -159,13 +159,6 @@ class AcademyController extends Controller
                 ->orderByRaw("CASE WHEN habbo_published_at IS NULL THEN 1 ELSE 0 END ASC")
                 ->orderByDesc('habbo_published_at')
                 ->orderByDesc('id');
-        }
-
-        if (Schema::hasColumn('badges', 'published_at')) {
-            $latestBadgesQuery->where(function ($query) {
-                $query->whereNull('published_at')
-                    ->orWhere('published_at', '<=', now());
-            });
         }
 
         $latestBadges = $latestBadgesQuery
@@ -304,41 +297,34 @@ class AcademyController extends Controller
 
             $hotelCodes = ['ES', 'US', 'BR', 'DE', 'FR', 'IT', 'NL', 'FI', 'TR', 'PT'];
             $badgesQuery = Badge::query()
-                ->whereNotNull('image_path');
-
-            if (Schema::hasColumn('badges', 'published_at')) {
-                $badgesQuery->where(function ($query) {
-                    $query->whereNull('published_at')
-                        ->orWhere('published_at', '<=', now());
-                });
-            }
+                ->whereNotNull('code');
 
             if ($category === 'hoteles') {
                 $badgesQuery->where(function ($query) use ($hotelCodes) {
                     foreach ($hotelCodes as $code) {
-                        $query->orWhereRaw("upper(code) GLOB '{$code}*'");
+                        $query->orWhereRaw('UPPER(code) LIKE ?', [strtoupper($code) . '%']);
                     }
                 });
             } elseif ($category === 'juegos') {
                 $badgesQuery->where(function ($query) {
-                    $query->orWhereRaw("upper(code) GLOB 'GAM*'")
-                        ->orWhereRaw("upper(code) GLOB 'GAME*'")
-                        ->orWhereRaw("upper(code) GLOB 'JUEGO*'")
-                        ->orWhereRaw("upper(code) GLOB 'WOB*'")
-                        ->orWhereRaw("upper(code) GLOB 'BB*'");
+                    $query->orWhereRaw('UPPER(code) LIKE ?', ['GAM%'])
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['GAME%'])
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['JUEGO%'])
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['WOB%'])
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['BB%']);
                 });
             } elseif ($category === 'fansites') {
                 $badgesQuery->where(function ($query) {
-                    $query->orWhereRaw("upper(code) GLOB 'FS*'")
-                        ->orWhereRaw("upper(code) GLOB 'FAN*'")
-                        ->orWhereRaw("upper(code) GLOB 'FSC*'");
+                    $query->orWhereRaw('UPPER(code) LIKE ?', ['FS%'])
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['FAN%'])
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['FSC%']);
                 });
             } elseif ($category === 'eventos') {
                 $badgesQuery->where(function ($query) {
                     $query->where('rarity', 'event')
-                        ->orWhereRaw("upper(code) GLOB 'EV*'")
-                        ->orWhereRaw("upper(code) GLOB 'XMAS*'")
-                        ->orWhereRaw("upper(code) GLOB 'HWEEN*'");
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['EV%'])
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['XMAS%'])
+                        ->orWhereRaw('UPPER(code) LIKE ?', ['HWEEN%']);
                 });
             }
 

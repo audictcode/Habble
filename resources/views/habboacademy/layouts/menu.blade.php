@@ -65,7 +65,7 @@
                 }
                 $viewerRank = auth()->check() ? (int) (auth()->user()->rank ?? 0) : 0;
             @endphp
-            <li class="item-menu">
+            <li class="item-menu {{ $navigation->subNavigations->count() ? 'has-dropdown' : '' }}">
                 <a href="{{ $navigationUrl }}" class="title-menu">
                     <span class="menu-text">
                         <img class="menu-inline-icon" src="{{ $navigationIconUrl }}" alt="{{ $navigationDisplayLabel }} icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
@@ -202,6 +202,65 @@
         </ul>
     </div>
 </nav>
+<script>
+    (function () {
+        var nav = document.querySelector('nav.menu');
+        if (!nav || nav.dataset.mobileSubmenuBound === '1') {
+            return;
+        }
+
+        nav.dataset.mobileSubmenuBound = '1';
+
+        var mediaQuery = window.matchMedia('(max-width: 992px)');
+        var dropdownItems = nav.querySelectorAll('li.item-menu.has-dropdown');
+
+        function closeAll(exceptItem) {
+            dropdownItems.forEach(function (item) {
+                if (item !== exceptItem) {
+                    item.classList.remove('is-open');
+                }
+            });
+        }
+
+        dropdownItems.forEach(function (item) {
+            var link = item.querySelector('a.title-menu');
+            if (!link) {
+                return;
+            }
+
+            link.addEventListener('click', function (event) {
+                if (!mediaQuery.matches) {
+                    return;
+                }
+
+                if (!item.classList.contains('is-open')) {
+                    event.preventDefault();
+                    closeAll(item);
+                    item.classList.add('is-open');
+                    return;
+                }
+
+                item.classList.remove('is-open');
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!mediaQuery.matches) {
+                return;
+            }
+
+            if (!nav.contains(event.target)) {
+                closeAll(null);
+            }
+        });
+
+        window.addEventListener('resize', function () {
+            if (!mediaQuery.matches) {
+                closeAll(null);
+            }
+        });
+    })();
+</script>
 @auth
 <script>
     (function () {

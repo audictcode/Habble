@@ -18,6 +18,13 @@
   --hb-shadow-md: 0 14px 30px rgba(18, 45, 85, 0.14);
   --hb-shadow-lg: 0 20px 44px rgba(11, 34, 69, 0.22);
   --hb-radius: 14px;
+  --hb-radius-sm: 10px;
+  --hb-ring: rgba(46, 121, 212, 0.3);
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
@@ -25,7 +32,36 @@ body {
     radial-gradient(1200px 520px at -10% -25%, rgba(46, 121, 212, 0.18), transparent 68%),
     radial-gradient(920px 460px at 115% -28%, rgba(237, 171, 70, 0.16), transparent 72%),
     linear-gradient(180deg, var(--hb-bg-top) 0%, var(--hb-bg-mid) 42%, var(--hb-bg-bottom) 100%);
+  font-family: "Exo 2", "Montserrat", sans-serif;
+  line-height: 1.45;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
   color: var(--hb-text);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(rgba(18, 54, 100, 0.06) 1px, transparent 1px),
+    radial-gradient(rgba(255, 255, 255, 0.65) 1px, transparent 1px);
+  background-size: 18px 18px, 18px 18px;
+  background-position: 0 0, 9px 9px;
+  opacity: 0.38;
+  z-index: 0;
+}
+
+.container-fluid.p-0 {
+  position: relative;
+  z-index: 1;
+}
+
+header {
+  position: relative;
+  z-index: 20;
 }
 
 ::selection {
@@ -53,9 +89,19 @@ a:hover {
   color: var(--hb-primary-deep);
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--hb-ring);
+}
+
 main#app {
   position: relative;
-  z-index: 2;
+  z-index: 5;
+  padding-top: 16px;
   padding-bottom: 30px;
 }
 
@@ -76,6 +122,7 @@ main#app {
   border-radius: var(--hb-radius) !important;
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.97), rgba(246, 250, 255, 0.94)) !important;
   box-shadow: var(--hb-shadow-sm) !important;
+  backdrop-filter: blur(2px);
 }
 
 .default-box.full {
@@ -91,6 +138,22 @@ main#app {
 .default-box.full h2,
 .default-box.full h3 {
   color: var(--hb-text);
+}
+
+.default-box.full h2 {
+  font-size: clamp(1.18rem, 1.5vw, 1.6rem);
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.default-box.full h2::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2e79d4, #59a3f7);
 }
 
 .form-control,
@@ -169,6 +232,11 @@ header .header-radio-btn:hover {
 }
 
 .menu {
+  position: relative;
+  z-index: 40;
+  isolation: isolate;
+  width: 100%;
+  max-width: 100%;
   height: auto;
   padding: 6px 0;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(242, 248, 255, 0.92));
@@ -227,6 +295,7 @@ header .header-radio-btn:hover {
   left: 0;
   top: 56px;
   width: min(250px, calc(100vw - 20px));
+  z-index: 2500;
   border: 1px solid var(--hb-border);
   border-radius: 12px;
   box-shadow: var(--hb-shadow-md);
@@ -334,6 +403,60 @@ header .header-radio-btn:hover {
 
 .menu ul.principal-list li.user-club .club-button.hk-button {
   background: linear-gradient(180deg, #d74848, #af2d2d);
+}
+
+.home-cards {
+  gap: 14px;
+}
+
+.home-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(243, 248, 255, 0.92));
+  padding: 14px 14px 12px;
+}
+
+.home-card img {
+  filter: drop-shadow(0 6px 10px rgba(15, 41, 79, 0.16));
+}
+
+.home-card h3 {
+  font-size: 17px;
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.home-card p {
+  color: var(--hb-muted);
+  line-height: 1.45;
+}
+
+.home-badges-grid {
+  gap: 10px;
+}
+
+.home-badge-thumb-cell,
+.badge-catalog-thumb-cell {
+  border-radius: var(--hb-radius-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 3px 8px rgba(22, 56, 101, 0.12);
+}
+
+.home-badge-icon-btn,
+.badge-catalog-action-cell {
+  border-radius: 6px;
+}
+
+.home-badge-info-modal,
+.badge-info-modal {
+  border-radius: 14px !important;
+}
+
+.home-badge-info-cell label,
+.badge-info-cell label {
+  color: #4f6482;
+}
+
+.home-badge-info-cell span,
+.badge-info-cell span {
+  color: #152945;
 }
 
 .register-container {
@@ -466,12 +589,23 @@ header .header-radio-btn:hover {
     box-shadow: 0 6px 20px rgba(9, 23, 48, 0.22);
   }
 
+  .home-cards {
+    gap: 10px;
+  }
+
   .menu {
     padding-top: 8px;
     padding-bottom: 10px;
   }
 
+  .menu ul.principal-list {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+  }
+
   .menu ul.principal-list li.item-menu {
+    flex: 0 1 calc(50% - 10px);
     width: calc(50% - 10px);
     min-width: 0;
     margin: 5px;
@@ -482,7 +616,33 @@ header .header-radio-btn:hover {
     top: 52px;
   }
 
+  .menu ul.principal-list li.item-menu.has-dropdown {
+    height: auto;
+    min-height: 50px;
+  }
+
+  .menu ul.principal-list li.item-menu.has-dropdown .drop-menu {
+    position: static;
+    top: auto;
+    left: auto;
+    width: 100%;
+    margin-top: 6px;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    display: none;
+  }
+
+  .menu ul.principal-list li.item-menu.has-dropdown.is-open .drop-menu {
+    display: block;
+  }
+
   .menu ul.principal-list li.user-club {
+    width: 100%;
+    flex: 1 0 100%;
+    margin-left: 0;
+    padding-left: 0;
+    justify-content: center;
     margin-top: 2px;
     gap: 8px;
   }
@@ -490,6 +650,7 @@ header .header-radio-btn:hover {
 
 @media (max-width: 768px) {
   main#app {
+    padding-top: 10px;
     padding-bottom: 20px;
   }
 
@@ -509,10 +670,19 @@ header .header-radio-btn:hover {
   .menu ul.principal-list li.item-menu a {
     font-size: 12px;
   }
+
+  .home-card {
+    padding: 12px;
+  }
+
+  .home-card h3 {
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 576px) {
   .menu ul.principal-list li.item-menu {
+    flex-basis: calc(100% - 10px);
     width: calc(100% - 10px);
   }
 

@@ -72,11 +72,11 @@ const HabboAcademy = {
                 menu = $("nav.menu:first-of-type");
 
             if(scrollTop > 500) {
-                menu.addClass("position-fixed").attr("style", "top: 0; z-index: 1000");
-                $("header").attr("style", "margin-top: 70px");
+                menu.addClass("position-fixed").attr("style", "top: 0; left: 0; right: 0; width: 100%; z-index: 1000");
+                $("main#app").attr("style", "margin-top: 70px");
             } else {
                 menu.removeClass("position-fixed").removeAttr("style");
-                $("header").removeAttr("style");
+                $("main#app").removeAttr("style");
             }
         })
     },

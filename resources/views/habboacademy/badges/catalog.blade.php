@@ -248,7 +248,10 @@
             <div class="badge-catalog-grid">
                 @foreach($badges as $badge)
                     @php
-                        $badgeImageUrl = 'https://www.habboassets.com/assets/badges/' . urlencode((string) $badge->code) . '.gif';
+                        $badgeImageUrl = academyMediaUrl($badge->image_path);
+                        if ($badgeImageUrl === '') {
+                            $badgeImageUrl = 'https://www.habboassets.com/assets/badges/' . urlencode((string) $badge->code) . '.gif';
+                        }
                         $codeUpper = strtoupper((string) ($badge->code ?? ''));
                         $hotelLabels = [
                             'ES' => 'Habbo España',

@@ -326,6 +326,55 @@ class HkConsole extends Page
 
         @File::put($lockPath, now()->toDateTimeString());
 
+        // En Windows el comando POSIX con /dev/null y subshell no funciona.
+        // Ejecutamos el comando de forma segura en el mismo proceso y logueamos salida.
+        if (DIRECTORY_SEPARATOR === '\\') {
+            @File::append(
+                $logPath,
+                PHP_EOL . '>>> [' . now()->format('Y-m-d H:i:s') . '] ' . $commandString . PHP_EOL
+            );
+
+            try {
+                $this->appendOutput('$ ' . $this->buildCommandString($commandName, $arguments));
+
+                $exitCode = Artisan::call($commandName, $arguments);
+                $output = trim((string) Artisan::output());
+                if ($output !== '') {
+                    $this->appendOutput($output);
+                    @File::append($logPath, PHP_EOL . $output . PHP_EOL);
+                }
+
+                $this->lastRunAt = now()->format('d/m/Y H:i:s');
+
+                if ($exitCode === 0) {
+                    Notification::make()
+                        ->title('Comando ejecutado')
+                        ->success()
+                        ->send();
+                } else {
+                    Notification::make()
+                        ->title('Comando finalizó con errores')
+                        ->warning()
+                        ->send();
+                }
+            } catch (\Throwable $exception) {
+                $message = 'Error: ' . $exception->getMessage();
+                $this->appendOutput($message);
+                @File::append($logPath, PHP_EOL . $message . PHP_EOL);
+                $this->lastRunAt = now()->format('d/m/Y H:i:s');
+
+                Notification::make()
+                    ->title('Error al ejecutar comando')
+                    ->danger()
+                    ->send();
+            } finally {
+                @File::delete($lockPath);
+                @File::delete($pidPath);
+            }
+
+            return;
+        }
+
         $exec = sprintf(
             'cd %s && printf %s >> %s 2>&1 && ( %s %s %s >> %s 2>&1 < /dev/null & echo $! > %s )',
             escapeshellarg($basePath),

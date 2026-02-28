@@ -11,6 +11,7 @@ class ImportHabboAssetsBadges extends Command
 {
     private const DEFAULT_BASE_URL = 'https://www.habboassets.com/api/v1/badges';
     private const DEFAULT_WEB_BASE_URL = 'https://www.habboassets.com';
+    private bool $sslBypassWarned = false;
 
     protected $signature = 'badges:import-habboassets
         {--base-url= : Endpoint JSON de badges}
@@ -84,9 +85,7 @@ class ImportHabboAssetsBadges extends Command
 
             foreach ($candidateUrls as $candidateUrl) {
                 try {
-                    $response = Http::timeout(45)
-                        ->acceptJson()
-                        ->get($candidateUrl, $query);
+                    $response = $this->httpJsonGet($candidateUrl, $query);
 
                     if ($response->ok()) {
                         $baseUrl = $candidateUrl;
@@ -236,9 +235,7 @@ class ImportHabboAssetsBadges extends Command
             }
 
             try {
-                $response = Http::timeout(45)
-                    ->accept('text/html,application/xhtml+xml')
-                    ->get($url);
+                $response = $this->httpHtmlGet($url);
             } catch (\Throwable $exception) {
                 $this->warn("No se pudo consultar {$url}: " . $exception->getMessage());
                 continue;
@@ -341,9 +338,7 @@ class ImportHabboAssetsBadges extends Command
 
         foreach ($candidateUrls as $url) {
             try {
-                $response = Http::timeout(45)
-                    ->accept('text/html,application/xhtml+xml')
-                    ->get($url);
+                $response = $this->httpHtmlGet($url);
 
                 if ($response->ok() && is_string($response->body()) && $response->body() !== '') {
                     $html = $response->body();
@@ -527,6 +522,48 @@ class ImportHabboAssetsBadges extends Command
         }
 
         return $text;
+    }
+
+    private function httpJsonGet(string $url, array $query = [])
+    {
+        return $this->httpGetWithSslFallback($url, $query, 'application/json');
+    }
+
+    private function httpHtmlGet(string $url, array $query = [])
+    {
+        return $this->httpGetWithSslFallback($url, $query, 'text/html,application/xhtml+xml');
+    }
+
+    private function httpGetWithSslFallback(string $url, array $query, string $accept)
+    {
+        try {
+            return Http::timeout(45)
+                ->accept($accept)
+                ->get($url, $query);
+        } catch (\Throwable $exception) {
+            if (!$this->isSslCertificateIssue($exception)) {
+                throw $exception;
+            }
+
+            if (!$this->sslBypassWarned) {
+                $this->warn('SSL local no configurado (cURL 60). Reintentando sin verificación de certificado para este comando.');
+                $this->sslBypassWarned = true;
+            }
+
+            return Http::withoutVerifying()
+                ->timeout(45)
+                ->accept($accept)
+                ->get($url, $query);
+        }
+    }
+
+    private function isSslCertificateIssue(\Throwable $exception): bool
+    {
+        $message = strtolower((string) $exception->getMessage());
+
+        return str_contains($message, 'curl error 60')
+            || str_contains($message, 'ssl certificate problem')
+            || str_contains($message, 'unable to get local issuer certificate');
     }
 
     private function normalizeHotel(string $hotel): string
