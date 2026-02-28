@@ -10,7 +10,8 @@ class FullSyncBadges extends Command
     protected $signature = 'badges:full-sync
         {--skip-import : Solo ejecutar reparación}
         {--limit=2000 : Límite por página para import}
-        {--max-pages=0 : Máximo de páginas para import (0 sin límite)}';
+        {--max-pages=0 : Máximo de páginas para import (0 sin límite)}
+        {--with-html-metadata : También consulta metadata HTML de detalle (más lento)}';
 
     protected $description = 'Importa todos los badges desde HabboAssets y repara metadata';
 
@@ -23,6 +24,10 @@ class FullSyncBadges extends Command
                 '--all' => true,
                 '--limit' => (int) $this->option('limit'),
             ];
+
+            if (!(bool) $this->option('with-html-metadata')) {
+                $importArgs['--skip-html-metadata'] = true;
+            }
 
             $maxPages = (int) $this->option('max-pages');
             if ($maxPages > 0) {

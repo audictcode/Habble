@@ -57,6 +57,7 @@ class ImportHabboAssetsBadges extends Command
         $processed = 0;
         $created = 0;
         $updated = 0;
+        $seenPageFingerprints = [];
 
         while (true) {
             $page++;
@@ -111,6 +112,13 @@ class ImportHabboAssetsBadges extends Command
                 $this->info('No hay más resultados.');
                 break;
             }
+
+            $pageFingerprint = $this->fingerprintBadges($badges);
+            if (isset($seenPageFingerprints[$pageFingerprint])) {
+                $this->warn("Página {$page}: resultados repetidos detectados (fin de páginas).");
+                break;
+            }
+            $seenPageFingerprints[$pageFingerprint] = true;
 
             $this->line("Página {$page}: {$count} badges (offset {$offset})");
 
@@ -209,7 +217,7 @@ class ImportHabboAssetsBadges extends Command
                 $created++;
             }
 
-            $offset += $limit;
+            $offset += $this->resolvePaginationStep($payload, $count, $limit);
 
             if (!$importAll) {
                 break;
@@ -524,6 +532,35 @@ class ImportHabboAssetsBadges extends Command
         return $text;
     }
 
+    private function resolvePaginationStep(mixed $payload, int $count, int $requestedLimit): int
+    {
+        $resolved = max(
+            0,
+            (int) (is_array($payload) ? ($payload['limit'] ?? $payload['per_page'] ?? 0) : 0)
+        );
+
+        if ($resolved > 0) {
+            return $resolved;
+        }
+
+        if ($count > 0) {
+            return $count;
+        }
+
+        return max(1, $requestedLimit);
+    }
+
+    private function fingerprintBadges(array $badges): string
+    {
+        $identity = array_values(array_map(static function (array $item): string {
+            $id = trim((string) ($item['id'] ?? ''));
+            $code = strtoupper(trim((string) ($item['code'] ?? '')));
+            return $id . '|' . $code;
+        }, $badges));
+
+        return md5(json_encode($identity));
+    }
+
     private function httpJsonGet(string $url, array $query = [])
     {
         return $this->httpGetWithSslFallback($url, $query, 'application/json');
@@ -536,25 +573,74 @@ class ImportHabboAssetsBadges extends Command
 
     private function httpGetWithSslFallback(string $url, array $query, string $accept)
     {
-        try {
-            return Http::timeout(45)
-                ->accept($accept)
-                ->get($url, $query);
-        } catch (\Throwable $exception) {
-            if (!$this->isSslCertificateIssue($exception)) {
-                throw $exception;
-            }
+        $attempt = 0;
+        $maxAttempts = 4;
+        $withoutVerifying = false;
 
-            if (!$this->sslBypassWarned) {
-                $this->warn('SSL local no configurado (cURL 60). Reintentando sin verificación de certificado para este comando.');
-                $this->sslBypassWarned = true;
-            }
+        while ($attempt < $maxAttempts) {
+            $attempt++;
 
-            return Http::withoutVerifying()
-                ->timeout(45)
-                ->accept($accept)
-                ->get($url, $query);
+            try {
+                $request = Http::timeout(45)
+                    ->accept($accept)
+                    ->withHeaders([
+                        'User-Agent' => 'HabbleHK/1.0 (+https://habble.org)',
+                    ]);
+
+                if ($withoutVerifying) {
+                    $request = $request->withoutVerifying();
+                }
+
+                $response = $request->get($url, $query);
+
+                if ($this->shouldRetryResponse($response) && $attempt < $maxAttempts) {
+                    $waitSeconds = $this->retryWaitSeconds($attempt);
+                    $this->warn("HTTP {$response->status()} en {$url}. Reintentando en {$waitSeconds}s...");
+                    sleep($waitSeconds);
+                    continue;
+                }
+
+                return $response;
+            } catch (\Throwable $exception) {
+                if ($this->isSslCertificateIssue($exception) && !$withoutVerifying) {
+                    if (!$this->sslBypassWarned) {
+                        $this->warn('SSL local no configurado (cURL 60). Reintentando sin verificación de certificado para este comando.');
+                        $this->sslBypassWarned = true;
+                    }
+
+                    $withoutVerifying = true;
+                    if ($attempt < $maxAttempts) {
+                        continue;
+                    }
+                }
+
+                if ($attempt >= $maxAttempts) {
+                    throw $exception;
+                }
+
+                $waitSeconds = $this->retryWaitSeconds($attempt);
+                $this->warn("Error de red en {$url}. Reintentando en {$waitSeconds}s...");
+                sleep($waitSeconds);
+            }
         }
+
+        return Http::timeout(45)->accept($accept)->get($url, $query);
+    }
+
+    private function shouldRetryResponse(mixed $response): bool
+    {
+        if (!is_object($response) || !method_exists($response, 'status')) {
+            return false;
+        }
+
+        $status = (int) $response->status();
+
+        return in_array($status, [429, 500, 502, 503, 504, 522, 524], true);
+    }
+
+    private function retryWaitSeconds(int $attempt): int
+    {
+        return min(12, max(2, $attempt * 2));
     }
 
     private function isSslCertificateIssue(\Throwable $exception): bool

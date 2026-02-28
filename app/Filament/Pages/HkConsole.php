@@ -69,6 +69,7 @@ class HkConsole extends Page
                 'background' => true,
                 'arguments' => [
                     '--all' => true,
+                    '--skip-html-metadata' => true,
                 ],
             ],
             'badges_repair_metadata' => [
@@ -105,7 +106,7 @@ class HkConsole extends Page
                 'command' => 'furnis:import-habbofurni',
                 'background' => true,
                 'arguments' => [
-                    '--paths' => 'furni,rares,ropa,animales,efectos,sonidos',
+                    '--paths' => 'furniture',
                 ],
             ],
             'furnis_sync_external' => [
@@ -294,52 +295,8 @@ class HkConsole extends Page
 
         @File::put($lockPath, now()->toDateTimeString());
 
-        // En Windows el comando POSIX con /dev/null y subshell no funciona.
-        // Ejecutamos el comando de forma segura en el mismo proceso y logueamos salida.
-        if (DIRECTORY_SEPARATOR === '\\') {
-            @File::append(
-                $logPath,
-                PHP_EOL . '>>> [' . now()->format('Y-m-d H:i:s') . '] ' . $commandString . PHP_EOL
-            );
-
-            try {
-                $this->appendOutput('$ ' . $this->buildCommandString($commandName, $arguments));
-
-                $exitCode = Artisan::call($commandName, $arguments);
-                $output = trim((string) Artisan::output());
-                if ($output !== '') {
-                    $this->appendOutput($output);
-                    @File::append($logPath, PHP_EOL . $output . PHP_EOL);
-                }
-
-                $this->lastRunAt = now()->format('d/m/Y H:i:s');
-
-                if ($exitCode === 0) {
-                    Notification::make()
-                        ->title('Comando ejecutado')
-                        ->success()
-                        ->send();
-                } else {
-                    Notification::make()
-                        ->title('Comando finalizó con errores')
-                        ->warning()
-                        ->send();
-                }
-            } catch (\Throwable $exception) {
-                $message = 'Error: ' . $exception->getMessage();
-                $this->appendOutput($message);
-                @File::append($logPath, PHP_EOL . $message . PHP_EOL);
-                $this->lastRunAt = now()->format('d/m/Y H:i:s');
-
-                Notification::make()
-                    ->title('Error al ejecutar comando')
-                    ->danger()
-                    ->send();
-            } finally {
-                @File::delete($lockPath);
-                @File::delete($pidPath);
-            }
-
+        if (DIRECTORY_SEPARATOR === '\\' || $this->isBackgroundExecUnavailable()) {
+            $this->runInCurrentProcess($commandName, $arguments, $commandString, $logPath, $lockPath, $pidPath);
             return;
         }
 
@@ -355,7 +312,15 @@ class HkConsole extends Page
             escapeshellarg($pidPath)
         );
 
-        @exec($exec);
+        $execOutput = [];
+        $execCode = 0;
+        @exec($exec, $execOutput, $execCode);
+
+        if ($execCode !== 0) {
+            $this->appendOutput("No se pudo lanzar en segundo plano (exit {$execCode}). Ejecutando en primer plano...");
+            $this->runInCurrentProcess($commandName, $arguments, $commandString, $logPath, $lockPath, $pidPath);
+            return;
+        }
 
         $this->lastRunAt = now()->format('d/m/Y H:i:s');
         $this->appendOutput("Comando lanzado en segundo plano:\n{$commandString}\n\nLog:\n{$logPath}");
@@ -364,6 +329,78 @@ class HkConsole extends Page
             ->title('Comando lanzado en segundo plano')
             ->success()
             ->send();
+    }
+
+    private function runInCurrentProcess(
+        string $commandName,
+        array $arguments,
+        string $commandString,
+        string $logPath,
+        string $lockPath,
+        string $pidPath
+    ): void {
+        @File::append(
+            $logPath,
+            PHP_EOL . '>>> [' . now()->format('Y-m-d H:i:s') . '] ' . $commandString . PHP_EOL
+        );
+
+        try {
+            $this->appendOutput('$ ' . $this->buildCommandString($commandName, $arguments));
+
+            $exitCode = Artisan::call($commandName, $arguments);
+            $output = trim((string) Artisan::output());
+            if ($output !== '') {
+                $this->appendOutput($output);
+                @File::append($logPath, PHP_EOL . $output . PHP_EOL);
+            }
+
+            $this->lastRunAt = now()->format('d/m/Y H:i:s');
+
+            if ($exitCode === 0) {
+                Notification::make()
+                    ->title('Comando ejecutado')
+                    ->success()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->title('Comando finalizó con errores')
+                    ->warning()
+                    ->send();
+            }
+        } catch (\Throwable $exception) {
+            $message = 'Error: ' . $exception->getMessage();
+            $this->appendOutput($message);
+            @File::append($logPath, PHP_EOL . $message . PHP_EOL);
+            $this->lastRunAt = now()->format('d/m/Y H:i:s');
+
+            Notification::make()
+                ->title('Error al ejecutar comando')
+                ->danger()
+                ->send();
+        } finally {
+            @File::delete($lockPath);
+            @File::delete($pidPath);
+        }
+    }
+
+    private function isBackgroundExecUnavailable(): bool
+    {
+        if (!function_exists('exec')) {
+            return true;
+        }
+
+        return $this->isFunctionDisabled('exec');
+    }
+
+    private function isFunctionDisabled(string $functionName): bool
+    {
+        $disabled = (string) ini_get('disable_functions');
+        if (trim($disabled) === '') {
+            return false;
+        }
+
+        $disabledFunctions = array_map('trim', explode(',', strtolower($disabled)));
+        return in_array(strtolower($functionName), $disabledFunctions, true);
     }
 
     private function resolvePhpBinary(string $configuredBinary): string
@@ -461,13 +498,13 @@ class HkConsole extends Page
                 if (trim($key) === '') {
                     continue;
                 }
-                $arguments[$key] = (string) $value;
+                $arguments[$key] = $this->normalizeCliValue((string) $value);
                 continue;
             }
 
             $next = $tokens[$i + 1] ?? null;
             if (is_string($next) && !Str::startsWith($next, '--')) {
-                $arguments[$token] = $next;
+                $arguments[$token] = $this->normalizeCliValue($next);
                 $i++;
                 continue;
             }
@@ -500,6 +537,13 @@ class HkConsole extends Page
         }
 
         return $tokens;
+    }
+
+    private function normalizeCliValue(string $value): string
+    {
+        $value = trim($value);
+        $value = trim($value, "\"'");
+        return trim($value);
     }
 
     private function buildCommandString(string $commandName, array $arguments): string

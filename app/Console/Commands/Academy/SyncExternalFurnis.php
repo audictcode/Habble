@@ -9,21 +9,23 @@ class SyncExternalFurnis extends Command
 {
     protected $signature = 'furnis:sync-external
         {--dry-run : Simular importaciones}
-        {--max-pages=1 : Máximo de páginas por proveedor}';
+        {--max-pages=0 : Máximo de páginas por proveedor (0 sin límite)}';
 
     protected $description = 'Sincroniza furnis desde HabboAssets + Habbofurni con categorías y metadatos';
 
     public function handle(): int
     {
         $dryRun = (bool) $this->option('dry-run');
-        $maxPages = max(1, (int) $this->option('max-pages'));
+        $maxPages = max(0, (int) $this->option('max-pages'));
 
         $this->info('Sincronizando furnis desde HabboAssets...');
         $habboAssetsArgs = [
             '--hotels' => 'es,com,com.br,de,fr,it,nl,fi,tr',
-            '--max-pages' => $maxPages,
             '--category' => 'auto',
         ];
+        if ($maxPages > 0) {
+            $habboAssetsArgs['--max-pages'] = $maxPages;
+        }
         if ($dryRun) {
             $habboAssetsArgs['--dry-run'] = true;
         }
@@ -32,9 +34,11 @@ class SyncExternalFurnis extends Command
 
         $this->info('Sincronizando furnis desde Habbofurni...');
         $habbofurniArgs = [
-            '--max-pages' => $maxPages,
-            '--paths' => 'furni,rares,ropa,animales,efectos,sonidos',
+            '--paths' => 'furniture',
         ];
+        if ($maxPages > 0) {
+            $habbofurniArgs['--max-pages'] = $maxPages;
+        }
         if ($dryRun) {
             $habbofurniArgs['--dry-run'] = true;
         }
